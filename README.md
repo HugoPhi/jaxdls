@@ -1,13 +1,14 @@
 # 🔥 Classic DeepLearning Models by Jax
 
-<center>
-<img src="./assets/mlp.png" alt="First Image" width="45%">
-<img src="./assets/LeNet.png" alt="Second Image" width="45%">
-</center>
+<p align="center">
+  <img src="./assets/mlp.png" alt="First Image" width="45%">
+  <img src="./assets/LeNet.png" alt="Second Image" width="45%">
+</p>
 
-<center>
+<p align="center">
 On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.10%] & loss vs. epochs for LaNet[1]
-</center>
+</p>
+
 
 ## # models implemented in this project
 
