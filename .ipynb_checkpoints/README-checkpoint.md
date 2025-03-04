@@ -1,12 +1,12 @@
 # 🔥 Classic DeepLearning Models by Jax
 
 <p align="center">
-  <img src="./assets/mlp.png" alt="First Image" width="45%">
+  <img src="./assets/mlp_100.png" alt="First Image" width="45%">
   <img src="./assets/LeNet.png" alt="Second Image" width="45%">
 </p>
 
 <p align="center">
-On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.50%] & loss vs. epochs for LaNet[1]
+On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. epochs for LaNet[1]
 </p>
 
 
@@ -22,7 +22,7 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.50%] & loss vs. 
     - MNIST.
 - LeNet
     - MNIST.
-- LSTM(TODO)
+- LSTM
     - UCI HAR.
 
 ## # unit tests

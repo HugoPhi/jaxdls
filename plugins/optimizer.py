@@ -51,10 +51,16 @@ class Optimizter(ABC):
             self.open = False
 
     def get_params(self):
-        return self.params
+        if self.open is False:
+            raise ValueError('please open optimizer first!!!')
+        else:
+            return self.params
 
     def get_steps(self):
-        return self.steps
+        if self.open is False:
+            raise ValueError('please open optimizer first!!!')
+        else:
+            return self.steps
 
 
 class Adam(Optimizter):
@@ -84,7 +90,8 @@ class Adam(Optimizter):
             d_params = grad(self._loss, argnums=0)(self.params)
     
             t = self.steps + 1
-    
+
+            @jit
             def adam(d_w, w, v, vv):
                 new_v = self.beta1*v + (1 - self.beta1)*d_w
                 new_vv = self.beta2*vv + (1 - self.beta2)*d_w*d_w
@@ -113,7 +120,7 @@ class Adam(Optimizter):
 
 
 
-class GD(Optimizter):
+class RawGD(Optimizter):
     def __init__(self, params, 
                  lr=0.01):
         super().__init__()
@@ -130,7 +137,8 @@ class GD(Optimizter):
             raise ValueError('please open optimizer first!!!')
         else:
             d_params = grad(self._loss, argnums=0)(self.params)
-    
+
+            @jit
             def gd(d_w, w):
                 new_w = w - self.lr * d_w
                 return new_w

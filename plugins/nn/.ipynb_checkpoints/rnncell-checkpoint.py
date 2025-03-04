@@ -1,4 +1,7 @@
-class OriginalVersion:
+import jax.numpy as np
+from jax import random, jit, random, lax
+
+class RawVersion:
     @staticmethod
     def normal_cell(x, h0, 
                     w_hh, w_xh, b_h, 

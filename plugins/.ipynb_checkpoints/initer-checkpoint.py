@@ -57,7 +57,7 @@ class Initer:
             'Bs': jnp.zeros((
                 4,
                 self.config[name]['hidden_dim']
-            ))
+            )).at[0].set(1),
         }
 
     def _fc(self, name):
@@ -123,7 +123,7 @@ class Initer:
                 self.config[name]['kernel_size'],
                 self.config[name]['kernel_size'],
             )),
-            'b': jnp.zeros(self.config[name]['output_channel'])           
+            'b': jnp.zeros((self.config[name]['output_channel']))           
         }
 
     def _conv2d4relu(self, name):
@@ -144,6 +144,6 @@ class Initer:
                 self.config[name]['input_channel'],
                 self.config[name]['kernel_size'],
                 self.config[name]['kernel_size'],
-            )) * jnp.sqrt(2 / self.config[name]['output_channel'] * self.config[name]['input_channel'] * self.config[name]['kernel_size']),
-            'b': jnp.zeros(self.config[name]['output_channel'])           
+            )) * jnp.sqrt(2 / (self.config[name]['output_channel'] * self.config[name]['input_channel'] * self.config[name]['kernel_size'])),
+            'b': jnp.zeros((self.config[name]['output_channel']))           
         }
