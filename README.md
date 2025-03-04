@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.10%] & loss vs. epochs for LaNet[1]
+On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.50%] & loss vs. epochs for LaNet[1]
 </p>
 
 
@@ -31,6 +31,8 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.10%] & loss vs. 
 - Kaiming Initialization[2] used in MLP & Conv (with derivation).
 - Conv Operation & Time Performances.
 - RNN Cells(Basic, LSTM, GRU[3]) & Time Performances.
+- Optimizers
+  - Adam
 
 # Reference
 
