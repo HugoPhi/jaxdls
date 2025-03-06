@@ -23,5 +23,14 @@ def cross_entropy_loss(y, y_pred):
     return loss.mean()
 
 
+def mean_squre_error(y, y_pred):
+    return jnp.mean((y - y_pred)**2)
+
+
 def relu(x: jnp.ndarray):
-    return jax.maximum
+    return jnp.maximum(x)
+
+
+def one_hot(x: jnp.ndarray, num_class):
+    res = jnp.zeros((x.shape[0], num_class))
+    return res.at[jnp.arange(x.shape[0]), x].set(1)

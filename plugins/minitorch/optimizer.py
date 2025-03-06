@@ -1,6 +1,7 @@
 import jax.numpy as jnp
-from jax import grad, vmap, jit, random, tree
+from jax import grad, jit, tree
 from abc import ABC, abstractmethod
+
 
 class Optimizter(ABC):
     '''
@@ -17,7 +18,7 @@ class Optimizter(ABC):
     @abstractmethod
     def flash(self):
         pass
-        
+
     def open(self, _loss):
         '''
         Input
@@ -36,7 +37,7 @@ class Optimizter(ABC):
     def close(self):
         if self.open is False:
             print('oprimizer is already closed.')
-        else: 
+        else:
             self.open = False
 
     def get_params(self):
@@ -53,12 +54,12 @@ class Optimizter(ABC):
 
 
 class Adam(Optimizter):
-    def __init__(self, params, 
+    def __init__(self, params,
                  lr=0.01, beta1=0.9, beta2=0.999, epsilon=1e-6):
         super().__init__()
-        
+
         self.params = params
-        
+
         self.lr = lr
         self.beta1 = beta1
         self.beta2 = beta2
@@ -71,49 +72,47 @@ class Adam(Optimizter):
         self.steps = 0
         self.open = False
 
-   
     def update(self):
         if self.open is False:
             raise ValueError('please open optimizer first!!!')
         else:
             d_params = grad(self._loss, argnums=0)(self.params)
-    
+
             t = self.steps + 1
 
             @jit
             def adam(d_w, w, v, vv):
-                new_v = self.beta1*v + (1 - self.beta1)*d_w
-                new_vv = self.beta2*vv + (1 - self.beta2)*d_w*d_w
-    
+                new_v = self.beta1 * v + (1 - self.beta1) * d_w
+                new_vv = self.beta2 * vv + (1 - self.beta2) * d_w * d_w
+
                 v_hat = new_v / (1 - self.beta1**t)
                 vv_hat = new_vv / (1 - self.beta2**t)
                 step = - self.lr * v_hat / (jnp.sqrt(vv_hat) + self.epsilon)
-    
+
                 new_w = w + step
                 return jnp.stack((
                     new_w,
                     new_v,
                     new_vv,
                 ))
-    
+
             def decode(pack, num_return=3):
                 res = []
                 for i in range(num_return):
                     res.append(tree.map(lambda x: x[i], pack))
 
                 return res
-    
+
             pack = tree.map(adam, d_params, self.params, self.V, self.VV)
             self.params, self.V, self.VV = decode(pack)
             self.steps += 1
 
 
-
-class RawGD(Optimizter):
-    def __init__(self, params, 
+class BGD(Optimizter):
+    def __init__(self, params,
                  lr=0.01):
         super().__init__()
-        
+
         self.params = params
         self.lr = lr
 
