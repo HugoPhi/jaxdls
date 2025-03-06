@@ -1,7 +1,0 @@
-README.md
-setup.py
-jaxdl.egg-info/PKG-INFO
-jaxdl.egg-info/SOURCES.txt
-jaxdl.egg-info/dependency_links.txt
-jaxdl.egg-info/requires.txt
-jaxdl.egg-info/top_level.txt

@@ -58,6 +58,7 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. 
   - Mini-Batch GD
   - Adam[6]
 - utils
+  - one hot
   - softmax
   - cross_entropy_loss
   - mean_square_error
