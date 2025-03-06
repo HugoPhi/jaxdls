@@ -1,8 +1,8 @@
 # 🔥 Classic DeepLearning Models by Jax
 
 <p align="center">
-  <img src="./assets/mlp_100.png" alt="First Image" width="45%">
-  <img src="./assets/LeNet.png" alt="Second Image" width="45%">
+  <img src="./assets/mlp.svg" alt="MLP on MNIST" width="45%">
+  <img src="./assets/LeNet.svg" alt="LeNet on MNIST" width="45%">
 </p>
 
 <p align="center">
