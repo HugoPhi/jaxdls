@@ -29,11 +29,11 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. 
 - GRU[3]
   - UCI HAR.
 - Transformer[4]
-  - WMT15(TODO).
+  - WMT15 <mark>TODO</mark>.
 - Nerual ODE[5]
-  - MNIST(TODO).
+  - MNIST <mark>TODO</mark>.
 - VAE
-  - MNIST(TODO).
+  - MNIST <mark>TODO</mark>.
 
 ## # unit tests
 
@@ -45,19 +45,20 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. 
 
 ## # Plugin: Mini-torch
 
-> TODO:
+> <mark>TODO</mark>:
 > - batch strategys for Optimizer.
 > - Conv1d & Conv3d initer.
 
 - nn
   - Conv
-    - Conv2d
-    - MaxPooling2d
+    - Conv1d, Conv2d, Conv3d
+    - MaxPooling1d, MaxPooling2d, MaxPooling3d
+    - BatchNorm <mark>TODO</mark>
   - RnnCell
     - Basic rnn kernel
     - LSTM kernel
     - GRU kernel
-  - fc
+  - FC
     - Dropout
 - Optimizer
   - Raw GD
@@ -67,7 +68,7 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. 
   - RMSProp
   - AdaDelta
   - Adam[6]
-- utils
+- Utils
   - one hot
   - softmax
   - cross_entropy_loss
