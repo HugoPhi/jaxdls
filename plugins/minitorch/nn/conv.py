@@ -5,6 +5,28 @@ from jax import lax
 class RawVersion:
     @staticmethod
     def conv2d(x, w, b, padding=1):
+        '''
+        Performs a 2D convolution operation using explicit loops.
+
+        Args:
+            x: Input tensor of shape (B, I, H, W), where:
+               - B: Batch size
+               - I: Input channels
+               - H: Height
+               - W: Width
+            w: Convolution kernel of shape (O, I, KH, KW), where:
+               - O: Output channels
+               - KH: Kernel height
+               - KW: Kernel width
+            b: Bias term of shape (O,).
+            padding: Padding size (default: 1).
+
+        Returns:
+            fgraph: Output feature map of shape (B, O, H', W'), where:
+                    - H': Output height = H + 2 * padding - KH + 1
+                    - W': Output width = W + 2 * padding - KW + 1
+        '''
+
         bs, icl, he, wi = x.shape  # input graph -> batch_size x channel x height x width
         ocl, icl, kh, kw = w.shape
         he = (he + 2 * padding - kh + 1)
@@ -33,6 +55,24 @@ class RawVersion:
 
     @staticmethod
     def max_pooling2d(x, pool_size=(2, 2), stride=None):
+        '''
+        Performs 2D max pooling using explicit loops.
+
+        Args:
+            x: Input tensor of shape (B, C, H, W), where:
+               - B: Batch size
+               - C: Channels
+               - H: Height
+               - W: Width
+            pool_size: Pooling window size (default: (2, 2)).
+            stride: Stride for the pooling operation (default: None, same as pool_size).
+
+        Returns:
+            output_array: Output tensor of shape (B, C, H', W'), where:
+                          - H': Output height = (H - pool_height) // stride_height + 1
+                          - W': Output width = (W - pool_width) // stride_width + 1
+        '''
+
         if stride is None:
             stride = pool_size
 
@@ -60,6 +100,25 @@ class RawVersion:
 
     @staticmethod
     def conv1d(x, w, b, padding=1):
+        '''
+        Performs a 1D convolution operation using explicit loops.
+
+        Args:
+            x: Input tensor of shape (B, I, L), where:
+               - B: Batch size
+               - I: Input channels
+               - L: Length
+            w: Convolution kernel of shape (O, I, KL), where:
+               - O: Output channels
+               - KL: Kernel length
+            b: Bias term of shape (O,).
+            padding: Padding size (default: 1).
+
+        Returns:
+            fgraph: Output feature map of shape (B, O, L'), where:
+                    - L': Output length = L + 2 * padding - KL + 1
+        '''
+
         bs, icl, le = x.shape  # input shape: (B, C, L)
         ocl, icl, kl = w.shape
         output_length = le + 2 * padding - kl + 1
@@ -78,6 +137,31 @@ class RawVersion:
 
     @staticmethod
     def conv3d(x, w, b, padding=1):
+        '''
+        Performs a 3D convolution operation using explicit loops.
+
+        Args:
+            x: Input tensor of shape (B, I, D, H, W), where:
+               - B: Batch size
+               - I: Input channels
+               - D: Depth
+               - H: Height
+               - W: Width
+            w: Convolution kernel of shape (O, I, KD, KH, KW), where:
+               - O: Output channels
+               - KD: Kernel depth
+               - KH: Kernel height
+               - KW: Kernel width
+            b: Bias term of shape (O,).
+            padding: Padding size (default: 1).
+
+        Returns:
+            fgraph: Output feature map of shape (B, O, D', H', W'), where:
+                    - D': Output depth = D + 2 * padding - KD + 1
+                    - H': Output height = H + 2 * padding - KH + 1
+                    - W': Output width = W + 2 * padding - KW + 1
+        '''
+
         bs, icl, d, h, w_dim = x.shape
         ocl, icl, kd, kh, kw = w.shape
         output_d = d + 2 * padding - kd + 1
@@ -101,6 +185,22 @@ class RawVersion:
 
     @staticmethod
     def max_pooling1d(x, pool_size=2, stride=None):
+        '''
+        Performs 1D max pooling using explicit loops.
+
+        Args:
+            x: Input tensor of shape (B, C, L), where:
+               - B: Batch size
+               - C: Channels
+               - L: Length
+            pool_size: Pooling window size (default: 2).
+            stride: Stride for the pooling operation (default: None, same as pool_size).
+
+        Returns:
+            out: Output tensor of shape (B, C, L'), where:
+                 - L': Output length = (L - pool_size) // stride + 1
+        '''
+
         stride = stride or pool_size
         batch, ch, le = x.shape
         output_l = (le - pool_size) // stride + 1
@@ -115,6 +215,26 @@ class RawVersion:
 
     @staticmethod
     def max_pooling3d(x, pool_size=(2, 2, 2), stride=None):
+        '''
+        Performs 3D max pooling using explicit loops.
+
+        Args:
+            x: Input tensor of shape (B, C, D, H, W), where:
+               - B: Batch size
+               - C: Channels
+               - D: Depth
+               - H: Height
+               - W: Width
+            pool_size: Pooling window size (default: (2, 2, 2)).
+            stride: Stride for the pooling operation (default: None, same as pool_size).
+
+        Returns:
+            out: Output tensor of shape (B, C, D', H', W'), where:
+                 - D': Output depth = (D - pool_d) // stride_d + 1
+                 - H': Output height = (H - pool_h) // stride_h + 1
+                 - W': Output width = (W - pool_w) // stride_w + 1
+        '''
+
         stride = stride or pool_size
         batch, ch, d, h, w = x.shape
         pool_d, pool_h, pool_w = pool_size
@@ -141,16 +261,18 @@ class JaxOptimized:
     @staticmethod
     def conv2d(x, w, b, padding=1):
         '''
-        Input
-        -----
-        x: (B, I, H, W)
-        w: (O, I, KH, KW)
-        b: (O)
+        Performs a 2D convolution operation using JAX's optimized functions.
 
-        Output
-        ------
-        res: (B, O, H, W)
+        Args:
+            x: Input tensor of shape (B, I, H, W).
+            w: Convolution kernel of shape (O, I, KH, KW).
+            b: Bias term of shape (O,).
+            padding: Padding size (default: 1).
+
+        Returns:
+            res: Output tensor of shape (B, O, H', W').
         '''
+
         dimension_numbers = ('NCHW', 'OIHW', 'NCHW')
         padding_mode = ((padding, padding), (padding, padding))  # 高度和宽度方向的padding
 
@@ -169,14 +291,17 @@ class JaxOptimized:
     @staticmethod
     def max_pooling2d(x, pool_size=(2, 2), stride=None):
         '''
-        Input
-        -----
-        x: (B, C, H, W)
+        Performs 2D max pooling using JAX's optimized functions.
 
-        Output
-        ------
-        res: (B, C, H, W)
+        Args:
+            x: Input tensor of shape (B, C, H, W).
+            pool_size: Pooling window size (default: (2, 2)).
+            stride: Stride for the pooling operation (default: None, same as pool_size).
+
+        Returns:
+            res: Output tensor of shape (B, C, H', W').
         '''
+
         if stride is None:
             stride = pool_size
 
@@ -192,15 +317,16 @@ class JaxOptimized:
     @staticmethod
     def conv1d(x, w, b, padding=1):
         '''
-        Input
-        -----
-        x: (B, I, L)
-        w: (O, I, K)
-        b: (O)
+        Performs a 1D convolution operation using JAX's optimized functions.
 
-        Output
-        ------
-        res: (B, O, L)
+        Args:
+            x: Input tensor of shape (B, I, L).
+            w: Convolution kernel of shape (O, I, K).
+            b: Bias term of shape (O,).
+            padding: Padding size (default: 1).
+
+        Returns:
+            res: Output tensor of shape (B, O, L').
         '''
 
         dimension_numbers = ('NCW', 'OIW', 'NCW')
@@ -212,15 +338,16 @@ class JaxOptimized:
     @staticmethod
     def conv3d(x, w, b, padding=1):
         '''
-        Input
-        -----
-        x: (B, I, D, H, W)
-        w: (O, I, KD, KH, KW)
-        b: (O)
+        Performs a 3D convolution operation using JAX's optimized functions.
 
-        Output
-        ------
-        res: (B, O, D, H, W)
+        Args:
+            x: Input tensor of shape (B, I, D, H, W).
+            w: Convolution kernel of shape (O, I, KD, KH, KW).
+            b: Bias term of shape (O,).
+            padding: Padding size (default: 1).
+
+        Returns:
+            res: Output tensor of shape (B, O, D', H', W').
         '''
 
         dimension_numbers = ('NCDHW', 'OIDHW', 'NCDHW')
@@ -233,15 +360,20 @@ class JaxOptimized:
     @staticmethod
     def max_pooling1d(x, pool_size=2, stride=None):
         '''
-        Input
-        -----
-        x: (B, C, L)
+        Performs 1D max pooling using JAX's optimized functions.
 
-        Output
-        ------
-        res: (B, C, L)
+        Args:
+            x: Input tensor of shape (B, C, L).
+            pool_size: Pooling window size (default: 2).
+            stride: Stride for the pooling operation (default: None, same as pool_size).
+
+        Returns:
+            res: Output tensor of shape (B, C, L').
         '''
-        stride = stride or pool_size
+
+        if stride is None:
+            stride = pool_size
+
         return lax.reduce_window(
             x, -jnp.inf, lax.max,
             (1, 1, pool_size), (1, 1, stride),
@@ -251,15 +383,20 @@ class JaxOptimized:
     @staticmethod
     def max_pooling3d(x, pool_size=(2, 2, 2), stride=None):
         '''
-        Input
-        -----
-        x: (B, C, D, H, W)
+        Performs 3D max pooling using JAX's optimized functions.
 
-        Output
-        ------
-        res: (B, C, D, H, W)
+        Args:
+            x: Input tensor of shape (B, C, D, H, W).
+            pool_size: Pooling window size (default: (2, 2, 2)).
+            stride: Stride for the pooling operation (default: None, same as pool_size).
+
+        Returns:
+            res: Output tensor of shape (B, C, D', H', W').
         '''
-        stride = stride or pool_size
+
+        if stride is None:
+            stride = pool_size
+
         return lax.reduce_window(
             x, -jnp.inf, lax.max,
             (1, 1, pool_size[0], pool_size[1], pool_size[2]),

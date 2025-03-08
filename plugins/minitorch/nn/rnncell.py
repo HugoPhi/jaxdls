@@ -1,5 +1,5 @@
 import jax.numpy as jnp
-from jax import lax
+from jax import lax, jit
 
 
 class RawVersion:
@@ -8,21 +8,27 @@ class RawVersion:
                        w_hh, w_xh, b_h,
                        w_hy, b_y):
         '''
-        Input
-        -----
-        x: (S, B, I)
-        h0: (B, H)
-        q_hh: (H, H)
-        w_xh: (I, H)
-        b_h: (H)
-        w_hy: (H, O)
-        b_y: (H)
+        Implements a basic RNN cell using an explicit loop.
 
-        Output
-        ------
-        res: (S, B, O)
-        h: (S, B, H)
+        Args:
+            x: Input sequence of shape (S, B, I), where:
+               - S: Sequence length
+               - B: Batch size
+               - I: Input dimension
+            h0: Initial hidden state of shape (B, H), where:
+                - H: Hidden state dimension
+            w_hh: Hidden-to-hidden weight matrix of shape (H, H).
+            w_xh: Input-to-hidden weight matrix of shape (I, H).
+            b_h: Hidden state bias of shape (H,).
+            w_hy: Hidden-to-output weight matrix of shape (H, O), where:
+                  - O: Output dimension
+            b_y: Output bias of shape (O,).
+
+        Returns:
+            res: Output sequence of shape (S, B, O).
+            h: Hidden state sequence of shape (S, B, H).
         '''
+
         steps, batch_size, input_dim = x.shape  # S, B, I
         _, hidden_dim = w_hh.shape  # H, H
         _, output_dim = w_hy.shape  # H, O
@@ -44,20 +50,24 @@ class RawVersion:
     def lstm_cell(x, h0, c0,
                   Ws, Us, Bs):
         '''
-        Input
-        -----
-        x: (S, B, I)
-        h0: (B, H)
-        c0: (B, H)
-        Ws: 4 * (I, H)
-        Us: 4 * (H, H)
-        Bs: 4 * (H)
+        Implements an LSTM cell using an explicit loop.
 
-        Output
-        ------
-        res: (S, B, H)
-        h: (S, B, H)
-        c: (S, B, H)
+        Args:
+            x: Input sequence of shape (S, B, I), where:
+               - S: Sequence length
+               - B: Batch size
+               - I: Input dimension
+            h0: Initial hidden state of shape (B, H), where:
+                - H: Hidden state dimension
+            c0: Initial cell state of shape (B, H).
+            Ws: Tuple of 4 weight matrices for input-to-hidden transformations, each of shape (I, H).
+            Us: Tuple of 4 weight matrices for hidden-to-hidden transformations, each of shape (H, H).
+            Bs: Tuple of 4 bias vectors, each of shape (H,).
+
+        Returns:
+            res: Output sequence of shape (S, B, H).
+            h: Hidden state sequence of shape (S, B, H).
+            c: Cell state sequence of shape (S, B, H).
         '''
 
         def sigmoid(x):
@@ -77,19 +87,19 @@ class RawVersion:
         c = c.at[-1].set(c0)
 
         for ix in range(steps):
-            I = sigmoid(x[ix] @ w_i + h[ix - 1] @ u_i + b_i)
-            F = sigmoid(x[ix] @ w_f + h[ix - 1] @ u_f + b_f)
-            C = jnp.tanh(x[ix] @ w_c + h[ix - 1] @ u_c + b_c)
-            O = sigmoid(x[ix] @ w_o + h[ix - 1] @ u_o + b_o)
+            II = sigmoid(x[ix] @ w_i + h[ix - 1] @ u_i + b_i)
+            FF = sigmoid(x[ix] @ w_f + h[ix - 1] @ u_f + b_f)
+            CC = jnp.tanh(x[ix] @ w_c + h[ix - 1] @ u_c + b_c)
+            OO = sigmoid(x[ix] @ w_o + h[ix - 1] @ u_o + b_o)
 
             c = c.at[ix].set(
-                F * c[ix - 1] + I * C
+                FF * c[ix - 1] + II * CC
             )
             h = h.at[ix].set(
-                O * jnp.tanh(C)
+                OO * jnp.tanh(CC)
             )
             res = res.at[ix].set(
-                O
+                OO
             )
 
         return res, h, c
@@ -98,18 +108,22 @@ class RawVersion:
     def gru_cell(x, h0,
                  Ws, Us, Bs):
         '''
-        Input
-        -----
-        x: (S, B, I)
-        h0: (B, H)
-        Ws: 3 * (I, H)
-        Us: 3 * (H, H)
-        Bs: 3 * (H)
+        Implements a GRU cell using an explicit loop.
 
-        Output
-        ------
-        res: (S, B, H)
-        h: (S, B, H)
+        Args:
+            x: Input sequence of shape (S, B, I), where:
+               - S: Sequence length
+               - B: Batch size
+               - I: Input dimension
+            h0: Initial hidden state of shape (B, H), where:
+                - H: Hidden state dimension
+            Ws: Tuple of 3 weight matrices for input-to-hidden transformations, each of shape (I, H).
+            Us: Tuple of 3 weight matrices for hidden-to-hidden transformations, each of shape (H, H).
+            Bs: Tuple of 3 bias vectors, each of shape (H,).
+
+        Returns:
+            res: Output sequence of shape (S, B, H).
+            h: Hidden state sequence of shape (S, B, H).
         '''
 
         def sigmoid(x):
@@ -144,30 +158,36 @@ class JaxOptimized:
                        w_hh, w_xh, b_h,
                        w_hy, b_y):
         '''
-        Input
-        -----
-        x: (S, B, I)
-        h0: (B, H)
-        q_hh: (H, H)
-        w_xh: (I, H)
-        b_h: (H)
-        w_hy: (H, O)
-        b_y: (H)
+        Implements a basic RNN cell using `lax.scan` for optimization.
 
-        Output
-        ------
-        res: (S, B, O)
-        h: (B, H)  # 最后一个h状态
+        Args:
+            x: Input sequence of shape (S, B, I), where:
+               - S: Sequence length
+               - B: Batch size
+               - I: Input dimension
+            h0: Initial hidden state of shape (B, H), where:
+                - H: Hidden state dimension
+            w_hh: Hidden-to-hidden weight matrix of shape (H, H).
+            w_xh: Input-to-hidden weight matrix of shape (I, H).
+            b_h: Hidden state bias of shape (H,).
+            w_hy: Hidden-to-output weight matrix of shape (H, O), where:
+                  - O: Output dimension
+            b_y: Output bias of shape (O,).
+
+        Returns:
+            res: Output sequence of shape (S, B, O).
+            h: Final hidden state of shape (B, H).
         '''
+
         def step(carry, x_t):
             h_prev = carry
 
             h_new = jnp.tanh(h_prev @ w_hh + x_t @ w_xh + b_h)
             res = h_new @ w_hy + b_y
 
-            return (h_new), (res)
+            return h_new, res
 
-        (h), (res) = lax.scan(step, (h0), x)
+        h, res = lax.scan(step, h0, x)
 
         return res, h
 
@@ -175,20 +195,24 @@ class JaxOptimized:
     def lstm_cell(x, h0, c0,
                   Ws, Us, Bs):
         '''
-        Input
-        -----
-        x: (S, B, I)
-        h0: (B, H)
-        c0: (B, H)
-        Ws: 4 * (I, H)
-        Us: 4 * (H, H)
-        Bs: 4 * (H)
+        Implements an LSTM cell using `lax.scan` for optimization.
 
-        Output
-        ------
-        res: (S, B, H)
-        h: (B, H)  # 最后一个h状态
-        c: (B, H)  # 最后一个c状态
+        Args:
+            x: Input sequence of shape (S, B, I), where:
+               - S: Sequence length
+               - B: Batch size
+               - I: Input dimension
+            h0: Initial hidden state of shape (B, H), where:
+                - H: Hidden state dimension
+            c0: Initial cell state of shape (B, H).
+            Ws: Tuple of 4 weight matrices for input-to-hidden transformations, each of shape (I, H).
+            Us: Tuple of 4 weight matrices for hidden-to-hidden transformations, each of shape (H, H).
+            Bs: Tuple of 4 bias vectors, each of shape (H,).
+
+        Returns:
+            res: Output sequence of shape (S, B, H).
+            h: Final hidden state of shape (B, H).
+            c: Final cell state of shape (B, H).
         '''
 
         def sigmoid(x):
@@ -210,27 +234,31 @@ class JaxOptimized:
             h_new = OO * jnp.tanh(c_new)
             res_new = OO
 
-            return (h_new, c_new), (res_new)
+            return (h_new, c_new), res_new
 
-        (h, c), (res) = lax.scan(step, (h0, c0), x)  # use scan to decrease RAM usage, I do not know why old version ram will increse by epochs
+        (h, c), res = lax.scan(step, (h0, c0), x)  # use scan to decrease RAM usage, I do not know why old version ram will increse by epochs
         return res, h, c
 
     @staticmethod
     def gru_cell(x, h0,
                  Ws, Us, Bs):
         '''
-        Input
-        -----
-        x: (S, B, I)
-        h0: (B, H)
-        Ws: 3 * (I, H)
-        Us: 3 * (H, H)
-        Bs: 3 * (H)
+        Implements a GRU cell using `lax.scan` for optimization.
 
-        Output
-        ------
-        res: (S, B, H)
-        h: (B, H)
+        Args:
+            x: Input sequence of shape (S, B, I), where:
+               - S: Sequence length
+               - B: Batch size
+               - I: Input dimension
+            h0: Initial hidden state of shape (B, H), where:
+                - H: Hidden state dimension
+            Ws: Tuple of 3 weight matrices for input-to-hidden transformations, each of shape (I, H).
+            Us: Tuple of 3 weight matrices for hidden-to-hidden transformations, each of shape (H, H).
+            Bs: Tuple of 3 bias vectors, each of shape (H,).
+
+        Returns:
+            res: Output sequence of shape (S, B, H).
+            h: Final hidden state of shape (B, H).
         '''
 
         def sigmoid(x):
@@ -250,8 +278,8 @@ class JaxOptimized:
             H = jnp.tanh(x_t @ w_h + (R * h_prev) @ u_h + b_h)
 
             new_h = (1 - Z) * h_prev + Z * H
-            return (new_h), (new_h)
+            return new_h, new_h
 
-        (h), (res) = lax.scan(step, (h0), x)
+        (h), (res) = lax.scan(step, h0, x)
 
         return res, h

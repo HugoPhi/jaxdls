@@ -45,6 +45,10 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. 
 
 ## # Plugin: Mini-torch
 
+> TODO:
+> - batch strategys for Optimizer.
+> - Conv1d & Conv3d initer.
+
 - nn
   - Conv
     - Conv2d
@@ -61,6 +65,7 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. 
   - Nesterov(NAG)
   - AdaGrad
   - RMSProp
+  - AdaDelta
   - Adam[6]
 - utils
   - one hot
@@ -72,9 +77,9 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. 
 
 # Reference
 
-[1] [Y. LeCun et al., Backpropagation Applied to Handwritten Zip Code Recognition (1989)](https://ieeexplore.ieee.org/document/6795724)  
-[2] [Delving Deep into Rectifiers (He et al., 2015)](https://arxiv.org/abs/1502.01852)  
-[3] [Pascanu, R., Mikolov, T., & Bengio, Y. (2013). On the difficulty of training recurrent neural networks. Proceedings of the 30th International Conference on Machine Learning (ICML), 1310–1318.](https://arxiv.org/abs/1211.5063)    
-[4] [Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł., & Polosukhin, I. (2017). Attention is All You Need. In Advances in Neural Information Processing Systems (NeurIPS 2017).](https://arxiv.org/abs/1706.03762)   
-[5] [Chen, T. Q., Rubanova, Y., Bettencourt, J., & Duvenaud, D. (2018). Neural Ordinary Differential Equations. Advances in Neural Information Processing Systems, 31.](https://arxiv.org/abs/1806.07366?spm=5176.28103460.0.0.40f7451eXLzPoY&file=1806.07366)   
-[6] [Kingma, D. P., & Ba, J. (2014). Adam: A Method for Stochastic Optimization. Proceedings of the International Conference on Learning Representations (ICLR).](https://arxiv.org/abs/1412.6980?spm=5176.28103460.0.0.40f7451eXLzPoY&file=1412.6980)   
+[[1](https://ieeexplore.ieee.org/document/6795724)] Y. LeCun et al., Backpropagation Applied to Handwritten Zip Code Recognition (1989).    
+[[2](https://arxiv.org/abs/1502.01852)] Delving Deep into Rectifiers (He et al., 2015)   
+[[3](https://arxiv.org/abs/1211.5063)] Pascanu, R., Mikolov, T., & Bengio, Y. (2013). On the difficulty of training recurrent neural networks. Proceedings of the 30th International Conference on Machine Learning (ICML), 1310–1318.    
+[[4](https://arxiv.org/abs/1706.03762)] Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł., & Polosukhin, I. (2017). Attention is All You Need. In Advances in Neural Information Processing Systems (NeurIPS 2017).   
+[[5](https://arxiv.org/abs/1806.07366?spm=5176.28103460.0.0.40f7451eXLzPoY&file=1806.07366)] Chen, T. Q., Rubanova, Y., Bettencourt, J., & Duvenaud, D. (2018). Neural Ordinary Differential Equations. Advances in Neural Information Processing Systems, 31.   
+[[6](https://arxiv.org/abs/1412.6980?spm=5176.28103460.0.0.40f7451eXLzPoY&file=1412.6980)] Kingma, D. P., & Ba, J. (2014). Adam: A Method for Stochastic Optimization. Proceedings of the International Conference on Learning Representations (ICLR).   
