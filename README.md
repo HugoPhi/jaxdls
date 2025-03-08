@@ -53,9 +53,14 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. 
     - Basic rnn kernel
     - LSTM kernel
     - GRU kernel
+  - fc
+    - Dropout
 - Optimizer
-  - Batch GD
-  - Mini-Batch GD
+  - Raw GD
+  - Momentum
+  - Nesterov(NAG)
+  - AdaGrad
+  - RMSProp
   - Adam[6]
 - utils
   - one hot

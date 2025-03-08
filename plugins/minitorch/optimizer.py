@@ -133,3 +133,43 @@ class BGD(Optimizter):
 
             self.params = tree.map(gd, d_params, self.params)
             self.steps += 1
+
+
+class Momenum(Optimizter):
+    def __init__(self, params,
+                 lr=0.01, beta=0.9):
+        super().__init__()
+
+        self.params = params
+
+        self.lr = lr
+        self.beta = beta
+
+    def flash(self):
+        self.V = tree.map(lambda x: jnp.zeros_like(x), self.params)
+
+        self.steps = 0
+        self.open = 0
+
+    def update(self):
+        if self.open is False:
+            raise ValueError('please open optimizer first!!!')
+        else:
+            d_params = grad(self._loss, argnums=0)(self.params)
+
+            @jit
+            def momentum(d_w, w, v):
+                new_v = self.beta * v + (1 - self.beta) * d_w
+                new_w = w - self.lr * new_v
+                return jnp.stack((new_w, new_v))
+
+            def decode(pack, num_return=2):
+                res = []
+                for i in range(num_return):
+                    res.append(tree.map(lambda x: x[i], pack))
+
+                return res
+
+            pack = tree.map(momentum, d_params, self.params, self.V)
+            self.params, self.V = decode(pack)
+            self.steps += 1

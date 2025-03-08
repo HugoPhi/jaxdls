@@ -14,7 +14,8 @@ class Initer:
 
     SupportLayers = ('lstm', 'gru',
                      'fc', 'fc4relu',
-                     'conv2d', 'conv2d4relu')
+                     'conv2d', 'conv2d4relu',
+                     'dropout')
 
     def __init__(self, config, key):
         self.key = key
@@ -32,7 +33,7 @@ class Initer:
         f = getattr(self, f'_{layer_type}', None)
 
         return f(name)
-
+      
     def _lstm(self, name):
         '''
         Config should be:
