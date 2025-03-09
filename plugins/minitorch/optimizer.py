@@ -89,7 +89,7 @@ class Optimizter(ABC):
         '''
         pass
 
-    def open(self, loss_function, x_train: jnp.ndarray, y_train: jnp.ndarray):
+    def open(self, loss_function, x_train: jnp.ndarray, y_train: jnp.ndarray, short_batch='drop'):
         '''
         Prepares the optimizer for training by initializing its state and setting up the training data.
 
@@ -99,6 +99,9 @@ class Optimizter(ABC):
                           Signature: `f(params, x, y_true) -> scalar`.
             x_train: Input data for training. Shape: `(num_samples, ...)`.
             y_train: True labels for training. Shape: `(num_samples, ...)`.
+            short_batch: The Strategy to handle short batch. including:
+                - 'drop': drop short batch, used when: dataset size >> batch size, num_batches = N // B
+                - 'pad': append arr[-B:] to trimmed arr, used when: dataset size >~ batch size, num_batches = N // B + 1
 
         Notes:
             - The training data is divided into batches based on the `batch_size` attribute.
@@ -112,15 +115,19 @@ class Optimizter(ABC):
             self.flash()
             self._loss = loss_function
 
-            self.num_batches = x_train.shape[0] // self.batch_size
-            trimmed_size = self.num_batches * self.batch_size
-
-            # TODO: add more strategy for short-batch
-            # "drop": drop last batch, used when: dataset size >> batch size
-            # "pad" : pad last batch, used when: dataset size << batch size
-            # "use" : use last batch, used when: dataset size == batch size
-            self.x_train = x_train[:trimmed_size]
-            self.y_train = y_train[:trimmed_size]
+            if short_batch == 'drop':
+                self.num_batches = x_train.shape[0] // self.batch_size
+                trimmed_size = self.num_batches * self.batch_size
+                self.x_train = x_train[:trimmed_size]
+                self.y_train = y_train[:trimmed_size]
+            elif short_batch == 'pad':
+                self.num_batches = x_train.shape[0] // self.batch_size
+                trimmed_size = self.num_batches * self.batch_size
+                self.x_train = jnp.concatenate((x_train[:trimmed_size], x_train[-self.batch_size:]), axis=0)  # pad last batch
+                self.y_train = jnp.concatenate((y_train[:trimmed_size], y_train[-self.batch_size:]), axis=0)
+                self.num_batches += 1
+            else:
+                raise ValueError(f'short_batch must be in "drop" or "pad", but get {short_batch} instead.')
 
             print(f'[*] oprimizer opened with {self.num_batches} batches with batch size {self.batch_size}.')
             self.open = True

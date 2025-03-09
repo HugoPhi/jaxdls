@@ -96,9 +96,9 @@ class Initer:
 
         Returns:
             A dictionary containing:
-            - 'Ws': Weight matrix for input-to-hidden transformations (shape: (4, input_dim, hidden_dim)).
-            - 'Us': Weight matrix for hidden-to-hidden transformations (shape: (4, hidden_dim, hidden_dim)).
-            - 'Bs': Bias terms (shape: (4, hidden_dim)), with the forget gate bias initialized to 1.
+            - 'Ws': Weight matrix for input-to-hidden transformations (4, input_dim, hidden_dim).
+            - 'Us': Weight matrix for hidden-to-hidden transformations (4, hidden_dim, hidden_dim).
+            - 'Bs': Bias terms (4, hidden_dim), with the forget gate bias initialized to 1.
         '''
 
         return {
@@ -132,9 +132,9 @@ class Initer:
 
         Returns:
             A dictionary containing:
-            - 'Ws': Weight matrix for input-to-hidden transformations (shape: (3, input_dim, hidden_dim)).
-            - 'Us': Weight matrix for hidden-to-hidden transformations (shape: (3, hidden_dim, hidden_dim)).
-            - 'Bs': Bias terms (shape: (3, hidden_dim)).
+            - 'Ws': Weight matrix for input-to-hidden transformations (3, input_dim, hidden_dim).
+            - 'Us': Weight matrix for hidden-to-hidden transformations (3, hidden_dim, hidden_dim).
+            - 'Bs': Bias terms (3, hidden_dim).
         '''
 
         return {
@@ -168,8 +168,8 @@ class Initer:
 
         Returns:
             A dictionary containing:
-            - 'w': Weight matrix (shape: (input_dim, output_dim)).
-            - 'b': Bias vector (shape: (output_dim,)).
+            - 'w': Weight matrix (input_dim, output_dim).
+            - 'b': Bias vector (output_dim,).
         '''
 
         res = {
@@ -198,8 +198,8 @@ class Initer:
 
         Returns:
             A dictionary containing:
-            - 'w': Weight matrix (shape: (input_dim, output_dim)), initialized using Kaiming initialization.
-            - 'b': Bias vector (shape: (output_dim,)).
+            - 'w': Weight matrix (input_dim, output_dim), initialized using Kaiming initialization.
+            - 'b': Bias vector (output_dim,).
         '''
 
         return {
@@ -221,22 +221,22 @@ class Initer:
         name: {
             'input_channel': int,  # Number of input channels
             'output_channel': int,  # Number of output channels
-            'kernel_size': int,     # Size of the convolutional kernel
+            'kernel_size': (int, int),     # Size of the convolutional kernel
         }
         ```
 
         Returns:
             A dictionary containing:
-            - 'w': Weight tensor (shape: (output_channel, input_channel, kernel_size, kernel_size)).
-            - 'b': Bias vector (shape: (output_channel,)).
+            - 'w': Weight tensor (output_channel, input_channel, *kernel_size).
+            - 'b': Bias vector (output_channel,).
         '''
 
         return {
             'w': random.normal(self.key, (
                 self.config[name]['output_channel'],
                 self.config[name]['input_channel'],
-                self.config[name]['kernel_size'],
-                self.config[name]['kernel_size'],
+                self.config[name]['kernel_size'][0],
+                self.config[name]['kernel_size'][1],
             )),
             'b': jnp.zeros((self.config[name]['output_channel']))
         }
@@ -250,23 +250,141 @@ class Initer:
         name: {
             'input_channel': int,  # Number of input channels
             'output_channel': int,  # Number of output channels
-            'kernel_size': int,     # Size of the convolutional kernel
+            'kernel_size': (int, int),     # Size of the convolutional kernel
         }
         ```
 
         Returns:
             A dictionary containing:
-            - 'w': Weight tensor (shape: (output_channel, input_channel, kernel_size, kernel_size)),
+            - 'w': Weight tensor (output_channel, input_channel, *kernel_size),
                      initialized using Kaiming initialization.
-            - 'b': Bias vector (shape: (output_channel,)).
+            - 'b': Bias vector (output_channel,).
         '''
 
         return {
             'w': random.normal(self.key, (
                 self.config[name]['output_channel'],
                 self.config[name]['input_channel'],
-                self.config[name]['kernel_size'],
-                self.config[name]['kernel_size'],
-            )) * jnp.sqrt(2 / (self.config[name]['output_channel'] * self.config[name]['input_channel'] * self.config[name]['kernel_size'])),
+                self.config[name]['kernel_size'][0],
+                self.config[name]['kernel_size'][1],
+            )) * jnp.sqrt(2 / (self.config[name]['input_channel'] * self.config[name]['kernel_size'][0] * self.config[name]['kernel_size'][1])),
+            'b': jnp.zeros((self.config[name]['output_channel']))
+        }
+
+    def _conv1d(self, name):
+        '''
+        Initializes parameters for a 1D convolutional layer.
+
+        Config should be:
+        ```
+        name: {
+            'input_channel': int,  # Number of input channels
+            'output_channel': int,  # Number of output channels
+            'kernel_size': (int,),     # Size of the convolutional kernel
+        }
+        ```
+
+        Returns:
+            A dictionary containing:
+            - 'w': Weight tensor (output_channel, input_channel, *kernel_size).
+            - 'b': Bias vector (output_channel,).
+        '''
+
+        return {
+            'w': random.normal(self.key, (
+                self.config[name]['output_channel'],
+                self.config[name]['input_channel'],
+                self.config[name]['kernel_size'][0],
+            )),
+            'b': jnp.zeros((self.config[name]['output_channel']))
+        }
+
+    def _conv1d4relu(self, name):
+        '''
+        Initializes parameters for a 1D convolutional layer intended for use with ReLU activation.
+
+        Config should be:
+        ```
+        name: {
+            'input_channel': int,  # Number of input channels
+            'output_channel': int,  # Number of output channels
+            'kernel_size': (int,),     # Size of the convolutional kernel
+        }
+        ```
+
+        Returns:
+            A dictionary containing:
+            - 'w': Weight tensor (output_channel, input_channel, *kernel_size),
+                     initialized using Kaiming initialization.
+            - 'b': Bias vector (output_channel,).
+        '''
+
+        return {
+            'w': random.normal(self.key, (
+                self.config[name]['output_channel'],
+                self.config[name]['input_channel'],
+                self.config[name]['kernel_size'][0],
+            )) * jnp.sqrt(2 / (self.config[name]['input_channel'] * self.config[name]['kernel_size'][0])),
+            'b': jnp.zeros((self.config[name]['output_channel']))
+        }
+
+    def _conv3d(self, name):
+        '''
+        Initializes parameters for a 3D convolutional layer.
+
+        Config should be:
+        ```
+        name: {
+            'input_channel': int,  # Number of input channels
+            'output_channel': int,  # Number of output channels
+            'kernel_size': (int, int, int),     # Size of the convolutional kernel
+        }
+        ```
+
+        Returns:
+            A dictionary containing:
+            - 'w': Weight tensor (output_channel, input_channel, *kernel_size).
+            - 'b': Bias vector (output_channel,).
+        '''
+
+        return {
+            'w': random.normal(self.key, (
+                self.config[name]['output_channel'],
+                self.config[name]['input_channel'],
+                self.config[name]['kernel_size'][0],
+                self.config[name]['kernel_size'][1],
+                self.config[name]['kernel_size'][2],
+            )),
+            'b': jnp.zeros((self.config[name]['output_channel']))
+        }
+
+    def _conv3d4relu(self, name):
+        '''
+        Initializes parameters for a 3D convolutional layer intended for use with ReLU activation.
+
+        Config should be:
+        ```
+        name: {
+            'input_channel': int,  # Number of input channels
+            'output_channel': int,  # Number of output channels
+            'kernel_size': (int, int, int),     # Size of the convolutional kernel
+        }
+        ```
+
+        Returns:
+            A dictionary containing:
+            - 'w': Weight tensor (output_channel, input_channel, *kernel_size),
+                     initialized using Kaiming initialization.
+            - 'b': Bias vector (output_channel,).
+        '''
+
+        return {
+            'w': random.normal(self.key, (
+                self.config[name]['output_channel'],
+                self.config[name]['input_channel'],
+                self.config[name]['kernel_size'][0],
+                self.config[name]['kernel_size'][1],
+                self.config[name]['kernel_size'][2],
+            )) * jnp.sqrt(2 / (self.config[name]['input_channel'] * self.config[name]['kernel_size'][0]) * self.config[name]['kernel_size'][1]) * self.config[name]['kernel_size'][2],
             'b': jnp.zeros((self.config[name]['output_channel']))
         }

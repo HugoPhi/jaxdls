@@ -31,25 +31,24 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. 
 - GRU[3]
   - UCI HAR.
 - Transformer[4]
-  - WMT15 <mark>TODO</mark>.
+  - WMT15. <mark>TODO</mark>
 - Nerual ODE[5]
-  - MNIST <mark>TODO</mark>.
+  - MNIST. <mark>TODO</mark>
 - VAE
-  - MNIST <mark>TODO</mark>.
+  - MNIST. <mark>TODO</mark>
 
-## # unit tests
+## # NoteBook Docs
 
-- How to Use Jax Gradient.
-- <ins>Kaiming Initialization[2] used in MLP & Conv (with derivation).</ins>
-- Conv Operation & Time Performances.
-- RNN Cells(Basic, LSTM, GRU) & Time Performances.
+Some small tests for debug during the development of this project:   
+
+- How to Use Jax Gradient, <ins>*Ideas about how I manage parameters in this Framework*</ins>. <mark>TODO</mark>
+- When to use JIT in Jax? <ins>*About Time & Space*</ins>  <mark>TODO</mark>
+- Kaiming Initialization[2] used in MLP & Conv, <ins>*With amth derivation*</ins>  <mark>TODO</mark>
+- Difference between Conv2d Operation by python loop and by **jax.lax**.
+- Dropout mechanic impl, <ins>*About Seed in Jax*.</ins>
 - Runge-Kuta solver for Neural ODE.
 
 ## # Plugin: Mini-torch
-
-> <mark>TODO</mark>:
-> - batch strategys for Optimizer.
-> - Conv1d & Conv3d initer.
 
 - nn
   - Model (Base Class for Nerual Networks, like nn.Module in torch)
