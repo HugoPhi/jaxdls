@@ -1,5 +1,7 @@
 # 🔥 Classic DeepLearning Models by Jax
 
+> <ins>💡: The Latest Framework test case is under: `./example/`.</ins>  
+
 <p align="center">
   <img src="./assets/mlp.svg" alt="MLP on MNIST" width="45%">
   <img src="./assets/LeNet.svg" alt="LeNet on MNIST" width="45%">
@@ -50,6 +52,7 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. 
 > - Conv1d & Conv3d initer.
 
 - nn
+  - Model (Base Class for Nerual Networks, like nn.Module in torch)
   - Conv
     - Conv1d, Conv2d, Conv3d
     - MaxPooling1d, MaxPooling2d, MaxPooling3d
@@ -60,6 +63,7 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. 
     - GRU kernel
   - FC
     - Dropout
+    - Linear
 - Optimizer
   - Raw GD
   - Momentum
@@ -69,6 +73,7 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. 
   - AdaDelta
   - Adam[6]
 - Utils
+  - sigmoid
   - one hot
   - softmax
   - cross_entropy_loss

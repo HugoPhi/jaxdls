@@ -1,10 +1,46 @@
+'''
+JAX Neural Network Framework Module
+
+* Last Updated: 2025-03-09
+* Author: HugoPhi, [GitHub](https://github.com/HugoPhi)
+* Maintainer: hugonelsonm3@gmail.com
+
+This module provides a high-level framework for building, training, and evaluating
+neural network models using JAX. It includes an abstract base class `Model` for
+defining custom models, along with utilities for training, evaluation, and
+optimization. The module also integrates with lower-level components for
+convolutional layers, recurrent layers, and fully connected layers.
+
+Key Features:
+    - Abstract `Model` class for defining custom neural network architectures
+    - Training loop with logging and evaluation capabilities
+    - Integration with JAX's JIT compilation for performance optimization
+    - Support for cross-entropy loss and accuracy metrics
+    - Modular design with separate components for different layer types
+
+Structure:
+    - Abstract `Model` class with `predict_proba` and `fit` methods
+    - Predefined layer types (Conv, Rnn, Dense) for building models
+    - Training utilities including loss computation and accuracy evaluation
+
+Typical Usage:
+    1. Subclass `Model` and implement `predict_proba` for custom architectures
+    2. Use `fit` method to train the model on provided data
+    3. Leverage predefined layer types (Conv, Rnn, Dense) in model implementations
+
+Note: This module assumes the use of JAX's functional programming paradigm and
+requires proper management of model parameters and optimizer states.
+'''
+
+
 import jax.numpy as jnp
-from ..utils import cross_entropy_loss
 from jax import jit
 from abc import ABC, abstractmethod
-from .conv import JaxOptimized as Conv
-from .rnncell import JaxOptimized as Rnn
-from .fc import dropout
+
+from .JaxOptimized import conv as Conv, rnncell as Rnn, fc as Dense
+# from .RawVersion import conv as Conv, rnncell as Rnn, fc as Dense  # RawVersion, Deprecated on 2025-03-09
+
+from ..utils import cross_entropy_loss
 
 
 @jit
@@ -25,7 +61,7 @@ def _acc(y_true_proba, y_pred_proba):
     return jnp.mean(y_true == y_pred)
 
 
-class NNModel(ABC):
+class Model(ABC):
     '''
     An abstract base class for defining, training, and evaluating neural network models.
 
@@ -105,7 +141,7 @@ class NNModel(ABC):
 
         pass
 
-    def fit(self, x_train, y_train_proba, x_test, y_test_proba, epoches=100):
+    def fit(self, x_train, y_train_proba, x_test, y_test_proba):
         '''
         Trains the model on the provided training data and evaluates it on the test data.
 
@@ -134,21 +170,22 @@ class NNModel(ABC):
 
         acc, loss, tacc, tloss = [], [], [], []  # train acc, train loss, test acc, test loss
 
-        for _ in range(epoches):
+        for _ in range(self.epoches):
             loss.append(_loss(self.optr.get_params(), x_train, y_train_proba))
             tloss.append(_tloss(self.optr.get_params()))
 
-            self.train = True  # use dropout only while updating grads
             self.optr.update()
-            self.train = False
 
             acc.append(_acc(y_train_proba, self.predict_proba(x_train, self.optr.get_params())))
             tacc.append(_acc(y_test_proba, self.predict_proba(x_test, self.optr.get_params())))
             cnt += 1
-            if cnt % 10 == 0:
+            if cnt % self.log_wise == 0:
                 print(f'>> epoch: {cnt}, train acc: {acc[-1]}, train loss: {loss[-1]}; test acc: {tacc[-1]}, test loss: {tloss[-1]}')
 
         return acc, loss, tacc, tloss
 
 
-__all__ = ['Conv', 'Rnn', 'NNModel', 'dropout']
+__all__ = ['Model',
+           'Conv',
+           'Rnn',
+           'Dense']

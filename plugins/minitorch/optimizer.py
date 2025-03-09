@@ -1,3 +1,43 @@
+'''
+JAX Optimization Algorithms Module
+
+* Last Updated: 2025-03-09
+* Author: HugoPhi, [GitHub](https://github.com/HugoPhi)
+* Maintainer: hugonelsonm3@gmail.com
+
+This module provides a collection of optimization algorithms implemented in JAX,
+including Gradient Descent, Momentum, Nesterov Accelerated Gradient, AdaGrad,
+RMSProp, AdaDelta, and Adam. These optimizers are designed to work seamlessly
+with JAX's functional programming paradigm and automatic differentiation.
+
+Key Features:
+    - Abstract base class `Optimizter` for defining custom optimizers
+    - Implementations of popular optimization algorithms:
+        - Gradient Descent (RawGD)
+        - Momentum
+        - Nesterov Accelerated Gradient (Nesterov)
+        - AdaGrad
+        - RMSProp
+        - AdaDelta
+        - Adam
+    - Support for batch processing and training state management
+    - Integration with JAX's JIT compilation for performance optimization
+
+Structure:
+    - Abstract `Optimizter` class with core functionality for managing parameters and training state
+    - Concrete optimizer classes implementing specific algorithms
+    - Batch processing utilities for efficient training
+
+Typical Usage:
+    1. Initialize an optimizer with model parameters and hyperparameters
+    2. Open the optimizer with training data and a loss function
+    3. Update parameters using the optimizer's `update` method
+    4. Close the optimizer when training is complete
+
+Note: All optimizers assume the use of JAX's functional programming paradigm and
+require proper management of model parameters and optimizer states.
+'''
+
 import jax.numpy as jnp
 from jax import grad, tree, lax
 from abc import ABC, abstractmethod

@@ -5,22 +5,25 @@ from jax import random
 class Initer:
     '''
     A class for initializing parameters of various neural network layers using appropriate initialization schemes.
+    Filter out static parameters & return trainable parameters
 
     Supported layer types:
-    - LSTM (Long Short-Term Memory)
-    - GRU (Gated Recurrent Unit)
-    - Fully Connected (FC) layers
-    - Fully Connected layers for ReLU activation (FC4ReLU)
-    - 2D Convolutional layers (Conv2D)
-    - 2D Convolutional layers for ReLU activation (Conv2D4ReLU)
+    - Long Short-Term Memory (lstm)
+    - Gated Recurrent Unit (gru)
+    - Fully Connected (fc) layers
+    - Fully Connected layers for ReLU activation (fc4relu)
+    - 2D Convolutional layers (conv2d)
+    - 2D Convolutional layers for ReLU activation (conv2d4relu)
+    - Dropout layer
 
-    Their name is:
+    Their name should be like:
     - "lstm:"
     - "gru:"
     - "fc:"
     - "fc4relu:"
     - "conv2d:"
     - "conv2d4relu:"
+    - "dropout:"
 
     Attributes:
         key: A JAX random key for generating random values.
@@ -30,8 +33,7 @@ class Initer:
     # TODO: conv1d, conv3d
     SupportLayers = ('lstm', 'gru',
                      'fc', 'fc4relu',
-                     'conv2d', 'conv2d4relu',
-                     'dropout')
+                     'conv2d', 'conv2d4relu', 'conv1d', 'conv1d4relu', 'conv3d', 'conv3d4relu')
 
     def __init__(self, config, key):
         '''
@@ -267,24 +269,4 @@ class Initer:
                 self.config[name]['kernel_size'],
             )) * jnp.sqrt(2 / (self.config[name]['output_channel'] * self.config[name]['input_channel'] * self.config[name]['kernel_size'])),
             'b': jnp.zeros((self.config[name]['output_channel']))
-        }
-
-    def _dropout(self, name):
-        '''
-        Initializes parameters for a dropout layer.
-
-        Config should be:
-        ```
-        name: {
-            'p': float,  # Dropout probability
-        }
-        ```
-
-        Returns:
-            A dictionary containing:
-            - 'p': Dropout probability, that is 100*p % of the units will be dropped.
-        '''
-
-        return {
-            'p': self.config[name]['p']
         }

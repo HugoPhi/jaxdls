@@ -1,7 +1,9 @@
 import jax
 import jax.numpy as jnp
+from jax import jit
 
 
+@jit
 def l1_regularization(params, lambda_l1=0.01):  # L1正则化项
     '''
     Computes the L1 regularization term for the given model parameters.
@@ -19,6 +21,7 @@ def l1_regularization(params, lambda_l1=0.01):  # L1正则化项
     return lambda_l1 * sum(jnp.abs(p).sum() for p in jax.tree_util.tree_leaves(params))
 
 
+@jit
 def l2_regularization(params, lambda_l2=0.01):  # L2正则化项
     '''
     Computes the L2 regularization term for the given model parameters.
@@ -36,6 +39,7 @@ def l2_regularization(params, lambda_l2=0.01):  # L2正则化项
     return lambda_l2 * sum((p ** 2).sum() for p in jax.tree_util.tree_leaves(params))
 
 
+@jit
 def softmax(logits):
     '''
     Computes the softmax function for the given logits.
@@ -54,6 +58,7 @@ def softmax(logits):
     return exp_logits / jnp.sum(exp_logits, axis=1, keepdims=True)
 
 
+@jit
 def cross_entropy_loss(y, y_pred):
     '''
     Computes the cross-entropy loss between the true labels and predicted probabilities.
@@ -75,6 +80,7 @@ def cross_entropy_loss(y, y_pred):
     return loss.mean()
 
 
+@jit
 def mean_squre_error(y, y_pred):
     '''
     Computes the mean squared error (MSE) between the true values and predicted values.
@@ -93,6 +99,7 @@ def mean_squre_error(y, y_pred):
     return jnp.mean((y - y_pred)**2)
 
 
+@jit
 def relu(x: jnp.ndarray):
     '''
     Applies the Rectified Linear Unit (ReLU) activation function to the input.
@@ -126,3 +133,18 @@ def one_hot(x: jnp.ndarray, num_class):
 
     res = jnp.zeros((x.shape[0], num_class))
     return res.at[jnp.arange(x.shape[0]), x].set(1)
+
+
+@jit
+def sigmoid(x: jnp.ndarray, clip=50):
+    '''
+    Applies the Sigmoid activation function to the input.
+
+    Sigmoid is defined as `1 / (1 + exp(-x))`, which transforms values into a range between 0 and 1.
+
+    Args:
+        x: A JAX array (1D, 2D, or ND) containing the input values.
+        clip: The maximum value to clip the input before applying the sigmoid function.
+    '''
+    x = jnp.clip(x, -clip, clip)
+    return 1 / (1 + jnp.exp(-x))

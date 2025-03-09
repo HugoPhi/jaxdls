@@ -1,5 +1,5 @@
 # Download latest version
-from jax import random, jit, tree, grad, lax
+from jax import random
 import jax.numpy as jnp
 import numpy as np
 import pandas as pd
@@ -65,8 +65,8 @@ X_test = X_test[shuffle_kernel][:TEST]
 y_test = y_test[shuffle_kernel][:TEST]
 
 
-X_train = jnp.transpose(X_train, (2, 0, 1))
-X_test = jnp.transpose(X_test, (2, 0, 1))
+# X_train = jnp.transpose(X_train, (2, 0, 1))
+# X_test = jnp.transpose(X_test, (2, 0, 1))
 
 print('X_train 形状:', X_train.shape)  # 应为 (128, 7352, 9)
 print('y_train 形状:', y_train.shape)  # 应为 (7352, 6)

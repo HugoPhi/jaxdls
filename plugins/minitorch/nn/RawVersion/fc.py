@@ -29,10 +29,11 @@ def dropout(x: jnp.ndarray, key, p=0.5, train=True):
         new_key: A new JAX random key, updated to ensure different masks are generated
                  for different batches.
 
-    Example:
-        >>> x = jnp.ones((10, 10))  # Example input
-        >>> key = random.PRNGKey(0)  # Random key
-        >>> x_out, key = dropout(x, key, p=0.5, train=True)  # Apply dropout during training
+    Examples
+    --------
+    >>> x = jnp.ones((10, 10))  # Example input
+    >>> key = random.PRNGKey(0)  # Random key
+    >>> x_out, key = dropout(x, key, p=0.5, train=True)  # Apply dropout during training
     '''
 
     if not train:
@@ -43,3 +44,32 @@ def dropout(x: jnp.ndarray, key, p=0.5, train=True):
     mask = random.bernoulli(use_key, p_keep, x.shape)
 
     return jnp.where(mask, x / p_keep, 0), new_key  # scale here to make E(X) the same while evaluating.
+
+
+def _linear(x: jnp.ndarray, w: jnp.ndarray, b: jnp.ndarray):
+    '''
+    Computes the output of a linear layer.
+
+    Args:
+        x: Input tensor of shape (batch_size, in_features).
+        w: Weight matrix of shape (out_features, in_features).
+        b: Bias vector of shape (out_features,).
+
+    Returns:
+        Output tensor of shape (batch_size, out_features).
+    '''
+
+    return jnp.dot(x, w) + b
+
+
+def get_linear(input_dim, output_dim):
+    return {
+        'input_dim': input_dim,
+        'output_dim': output_dim
+    }
+
+
+def linear(x, params):
+    w = params['w']
+    b = params['b']
+    return _linear(x, w, b)
