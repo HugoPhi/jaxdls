@@ -34,7 +34,7 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. 
   - WMT15. <mark>TODO</mark>
 - Nerual ODE[5]
   - MNIST. <mark>TODO</mark>
-- VAE
+- VAE[7]
   - MNIST. <mark>TODO</mark>
 
 ## # NoteBook Docs
@@ -48,7 +48,7 @@ Some small tests for debug during the development of this project:
 - Dropout mechanism impl, <ins>*About Seed in Jax*.</ins>
 - Runge-Kuta solver for Neural ODE.
 
-## # Plugin: Mini-torch
+## # Mini-torch
 
 <p align="center">
   <img src="./assets/notebook_docs/minitorch.svg" alt="Overview of framework", width="80%">
@@ -96,3 +96,4 @@ Overview of Framework
 [[4](https://arxiv.org/abs/1706.03762)] Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł., & Polosukhin, I. (2017). Attention is All You Need. In Advances in Neural Information Processing Systems (NeurIPS 2017).   
 [[5](https://arxiv.org/abs/1806.07366?spm=5176.28103460.0.0.40f7451eXLzPoY&file=1806.07366)] <ins>Chen, T. Q., Rubanova, Y., Bettencourt, J., & Duvenaud, D. (2018). Neural Ordinary Differential Equations. Advances in Neural Information Processing Systems, 31.</ins>   
 [[6](https://arxiv.org/abs/1412.6980?spm=5176.28103460.0.0.40f7451eXLzPoY&file=1412.6980)] Kingma, D. P., & Ba, J. (2014). Adam: A Method for Stochastic Optimization. Proceedings of the International Conference on Learning Representations (ICLR).   
+[[7](https://arxiv.org/abs/1312.6114)] Kingma, D., & Welling, M. (2014). Auto-Encoding Variational Bayes. In International Conference on Learning Representations (ICLR). 
