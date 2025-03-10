@@ -124,6 +124,7 @@ class Model(ABC):
         self.epoches = epoches
         self.log_wise = log_wise
         self.optr = None
+        self.lossr = None
 
     @abstractmethod
     def predict_proba(self, x: jnp.ndarray, params, train=True):
@@ -161,12 +162,10 @@ class Model(ABC):
 
         cnt = 0
 
-        _loss = lambda params, x, y_true: cross_entropy_loss(y_true, self.predict_proba(x, params, True))
-        _loss = jit(_loss)  # accelerate loss function by JIT
+        _loss = jit(self.lossr.get_loss(train=True))
         self.optr.open(_loss, x_train, y_train_proba)
 
-        _tloss = lambda params: cross_entropy_loss(y_test_proba, self.predict_proba(x_test, params, False))
-        _tloss = jit(_tloss)  # accelerate loss function by JIT
+        _tloss = jit(self.lossr.get_embed_loss(x_test, y_test_proba, train=False))
 
         acc, loss, tacc, tloss = [], [], [], []  # train acc, train loss, test acc, test loss
 
