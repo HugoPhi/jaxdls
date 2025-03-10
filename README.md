@@ -41,11 +41,11 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. 
 
 Some small tests for debug during the development of this project:   
 
-- How to Use Jax Gradient, <ins>*Ideas about how I manage parameters in this Framework*</ins>. <mark>TODO</mark>
+- How to Use Jax Gradient, <ins>*Ideas about how I manage parameters in this Framework*</ins>. 
 - When to use JIT in Jax? <ins>*About Time & Space*</ins>  <mark>TODO</mark>
 - Kaiming Initialization[2] used in MLP & Conv, <ins>*With math derivation*</ins>  
-- Difference between Conv2d Operation by python loop and by **jax.lax**.
-- Dropout mechanic impl, <ins>*About Seed in Jax*.</ins>
+- Difference between Conv2d Operation by python loop and by **Jax.Lax**.
+- Dropout mechanism impl, <ins>*About Seed in Jax*.</ins>
 - Runge-Kuta solver for Neural ODE.
 
 ## # Plugin: Mini-torch
