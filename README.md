@@ -50,6 +50,14 @@ Some small tests for debug during the development of this project:
 
 ## # Plugin: Mini-torch
 
+<p align="center">
+  <img src="./assets/notebook_docs/minitorch.svg" alt="Overview of framework", width="80%">
+</p>
+
+<p align="center">
+Overview of Framework
+</p>
+
 - nn
   - Model (Base Class for Nerual Networks, like nn.Module in torch)
   - Conv
