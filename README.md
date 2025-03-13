@@ -19,7 +19,7 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. 
 - Logistic Regression
   - Iris.
 - KNN
-  - CIFAR-10. (avg 50x faster than sklearn on cpu, 135x faster than torch on cpu, with `jax.lax, jit, vmap`)
+  - CIFAR-10. (avg <ins>50x faster than sklearn</ins> on cpu, <ins>135x faster than torch</ins> on cpu, with `jax.lax, jit, vmap`)
 - MLP
   - MNIST.
   - CIFAR-10.
