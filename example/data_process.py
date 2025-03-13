@@ -57,13 +57,20 @@ y_test = one_hot(y_test, 6)
 TRAIN = None
 TEST = None
 
-shuffle_kernel = random.permutation(key, (X_train.shape[0]))
-X_train = X_train[shuffle_kernel][:TRAIN]
-y_train = y_train[shuffle_kernel][:TRAIN]
-shuffle_kernel = random.permutation(key, (X_test.shape[0]))
-X_test = X_test[shuffle_kernel][:TEST]
-y_test = y_test[shuffle_kernel][:TEST]
+Shuffle = False
 
+if Shuffle:
+    shuffle_kernel = random.permutation(key, (X_train.shape[0]))
+    X_train = X_train[shuffle_kernel][:TRAIN]
+    y_train = y_train[shuffle_kernel][:TRAIN]
+    shuffle_kernel = random.permutation(key, (X_test.shape[0]))
+    X_test = X_test[shuffle_kernel][:TEST]
+    y_test = y_test[shuffle_kernel][:TEST]
+else:
+    X_train = X_train[:TRAIN]
+    y_train = y_train[:TRAIN]
+    X_test = X_test[:TEST]
+    y_test = y_test[:TEST]
 
 # X_train = jnp.transpose(X_train, (2, 0, 1))
 # X_test = jnp.transpose(X_test, (2, 0, 1))
