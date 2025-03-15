@@ -30,7 +30,6 @@ class Initer:
         config: A dictionary containing configuration details for each layer.
     '''
 
-    # TODO: conv1d, conv3d
     SupportLayers = ('lstm', 'gru',
                      'fc', 'fc4relu',
                      'conv2d', 'conv2d4relu', 'conv1d', 'conv1d4relu', 'conv3d', 'conv3d4relu')
