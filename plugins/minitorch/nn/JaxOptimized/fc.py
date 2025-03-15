@@ -95,10 +95,11 @@ def _linear(x: jnp.ndarray, w: jnp.ndarray, b: jnp.ndarray):
     return jnp.dot(x, w) + b
 
 
-def get_linear(input_dim, output_dim):
+def get_linear(input_dim, output_dim, strategy='Kaiming'):
     return {
         'input_dim': input_dim,
-        'output_dim': output_dim
+        'output_dim': output_dim,
+        'strategy': strategy,
     }
 
 

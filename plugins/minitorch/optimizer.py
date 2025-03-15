@@ -89,14 +89,14 @@ class Optimizter(ABC):
         '''
         pass
 
-    def open(self, loss_function, x_train: jnp.ndarray, y_train: jnp.ndarray, short_batch='drop', key=random.PRNGKey(42)):
+    def open(self, loss_function, x_train: jnp.ndarray, y_train: jnp.ndarray, short_batch='drop', key=None):
         '''
         Prepares the optimizer for training by initializing its state and setting up the training data.
 
         Args:
             loss_function: A loss function that computes the scalar loss given model parameters,
                           input data, and true labels. It must be JIT-compiled.
-                          Signature: `f(params, x, y_true, key=random.PRNGKey(42)) -> scalar`.
+                          Signature: `f(params, x, y_true) -> scalar`.
             x_train: Input data for training. Shape: `(num_samples, ...)`.
             y_train: True labels for training. Shape: `(num_samples, ...)`.
             short_batch: The Strategy to handle short batch. including:
@@ -249,8 +249,10 @@ class Adam(Optimizter):
             ixs = jnp.arange(self.num_batches)
             bxs = self.x_train.reshape(self.num_batches, self.batch_size, *self.x_train.shape[1:])
             bys = self.y_train.reshape(self.num_batches, self.batch_size, *self.y_train.shape[1:])
-            subkeys = random.split(self.key, self.num_batches + 1)
-            self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
+
+            if self.key is not None:
+                subkeys = random.split(self.key, self.num_batches + 1)
+                self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
 
             def one_batch(carry, ix):
 
@@ -274,8 +276,12 @@ class Adam(Optimizter):
 
                 bx = bxs[ix]
                 by = bys[ix]
-                kkey = subkeys[ix]
-                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
+
+                if self.key is not None:
+                    kkey = subkeys[ix]
+                    d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
+                else:
+                    d_params = grad(self._loss, argnums=0)(carry['params'], bx, by)
 
                 pack = tree.map(adam, d_params, carry['params'], carry['V'], carry['VV'])  # use Adam
                 carry['params'] = tree.map(lambda x: x[0], pack)
@@ -351,8 +357,10 @@ class RawGD(Optimizter):
             ixs = jnp.arange(self.num_batches)
             bxs = self.x_train.reshape(self.num_batches, self.batch_size, *self.x_train.shape[1:])
             bys = self.y_train.reshape(self.num_batches, self.batch_size, *self.y_train.shape[1:])
-            subkeys = random.split(self.key, self.num_batches + 1)
-            self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
+
+            if self.key is not None:
+                subkeys = random.split(self.key, self.num_batches + 1)
+                self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
 
             def one_batch(carry, ix):
 
@@ -362,9 +370,12 @@ class RawGD(Optimizter):
 
                 bx = bxs[ix]
                 by = bys[ix]
-                kkey = subkeys[ix]
 
-                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
+                if self.key is not None:
+                    kkey = subkeys[ix]
+                    d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
+                else:
+                    d_params = grad(self._loss, argnums=0)(carry['params'], bx, by)
 
                 pack = tree.map(gd, d_params, carry['params'])
                 carry['params'] = pack
@@ -444,8 +455,10 @@ class Momenum(Optimizter):
             ixs = jnp.arange(self.num_batches)
             bxs = self.x_train.reshape(self.num_batches, self.batch_size, *self.x_train.shape[1:])
             bys = self.y_train.reshape(self.num_batches, self.batch_size, *self.y_train.shape[1:])
-            subkeys = random.split(self.key, self.num_batches + 1)
-            self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
+
+            if self.key is not None:
+                subkeys = random.split(self.key, self.num_batches + 1)
+                self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
 
             def one_batch(carry, ix):
 
@@ -456,9 +469,12 @@ class Momenum(Optimizter):
 
                 bx = bxs[ix]
                 by = bys[ix]
-                kkey = subkeys[ix]
 
-                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
+                if self.key is not None:
+                    kkey = subkeys[ix]
+                    d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
+                else:
+                    d_params = grad(self._loss, argnums=0)(carry['params'], bx, by)
 
                 pack = tree.map(momentum, d_params, carry['params'], carry['V'])
                 carry['params'] = tree.map(lambda x: x[0], pack)
@@ -541,8 +557,10 @@ class Nesterov(Optimizter):
             ixs = jnp.arange(self.num_batches)
             bxs = self.x_train.reshape(self.num_batches, self.batch_size, *self.x_train.shape[1:])
             bys = self.y_train.reshape(self.num_batches, self.batch_size, *self.y_train.shape[1:])
-            subkeys = random.split(self.key, self.num_batches + 1)
-            self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
+
+            if self.key is not None:
+                subkeys = random.split(self.key, self.num_batches + 1)
+                self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
 
             def one_batch(carry, ix):
 
@@ -555,9 +573,12 @@ class Nesterov(Optimizter):
 
                 bx = bxs[ix]
                 by = bys[ix]
-                kkey = subkeys[ix]
 
-                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
+                if self.key is not None:
+                    kkey = subkeys[ix]
+                    d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
+                else:
+                    d_params = grad(self._loss, argnums=0)(carry['params'], bx, by)
 
                 pack = tree.map(nag, d_params, carry['params'], carry['V'])
                 carry['params'] = tree.map(lambda x: x[0], pack)
@@ -639,8 +660,10 @@ class AdaGrad(Optimizter):
             ixs = jnp.arange(self.num_batches)
             bxs = self.x_train.reshape(self.num_batches, self.batch_size, *self.x_train.shape[1:])
             bys = self.y_train.reshape(self.num_batches, self.batch_size, *self.y_train.shape[1:])
-            subkeys = random.split(self.key, self.num_batches + 1)
-            self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
+
+            if self.key is not None:
+                subkeys = random.split(self.key, self.num_batches + 1)
+                self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
 
             def one_batch(carry, ix):
 
@@ -651,9 +674,12 @@ class AdaGrad(Optimizter):
 
                 bx = bxs[ix]
                 by = bys[ix]
-                kkey = subkeys[ix]
 
-                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
+                if self.key is not None:
+                    kkey = subkeys[ix]
+                    d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
+                else:
+                    d_params = grad(self._loss, argnums=0)(carry['params'], bx, by)
 
                 pack = tree.map(adagrad, d_params, carry['params'], carry['G'])
                 carry['params'] = tree.map(lambda x: x[0], pack)
@@ -740,8 +766,10 @@ class RMSProp(Optimizter):
             ixs = jnp.arange(self.num_batches)
             bxs = self.x_train.reshape(self.num_batches, self.batch_size, *self.x_train.shape[1:])
             bys = self.y_train.reshape(self.num_batches, self.batch_size, *self.y_train.shape[1:])
-            subkeys = random.split(self.key, self.num_batches + 1)
-            self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
+
+            if self.key is not None:
+                subkeys = random.split(self.key, self.num_batches + 1)
+                self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
 
             def one_batch(carry, ix):
 
@@ -752,9 +780,12 @@ class RMSProp(Optimizter):
 
                 bx = bxs[ix]
                 by = bys[ix]
-                kkey = subkeys[ix]
 
-                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
+                if self.key is not None:
+                    kkey = subkeys[ix]
+                    d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
+                else:
+                    d_params = grad(self._loss, argnums=0)(carry['params'], bx, by)
 
                 pack = tree.map(rmsprop, d_params, carry['params'], carry['G'])
                 carry['params'] = tree.map(lambda x: x[0], pack)
@@ -841,8 +872,10 @@ class AdaDelta(Optimizter):
             ixs = jnp.arange(self.num_batches)
             bxs = self.x_train.reshape(self.num_batches, self.batch_size, *self.x_train.shape[1:])
             bys = self.y_train.reshape(self.num_batches, self.batch_size, *self.y_train.shape[1:])
-            subkeys = random.split(self.key, self.num_batches + 1)
-            self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
+
+            if self.key is not None:
+                subkeys = random.split(self.key, self.num_batches + 1)
+                self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
 
             def one_batch(carry, ix):
 
@@ -855,9 +888,12 @@ class AdaDelta(Optimizter):
 
                 bx = bxs[ix]
                 by = bys[ix]
-                kkey = subkeys[ix]
 
-                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
+                if self.key is not None:
+                    kkey = subkeys[ix]
+                    d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
+                else:
+                    d_params = grad(self._loss, argnums=0)(carry['params'], bx, by)
 
                 pack = tree.map(adadelta, d_params, carry['params'], carry['E_g2'], carry['E_dx2'])
                 carry['params'] = tree.map(lambda x: x[0], pack)
