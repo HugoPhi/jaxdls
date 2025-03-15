@@ -79,7 +79,7 @@ def _basic_rnn_cell(x, h0,
     return res, h
 
 
-def get_basic_rnn(timesteps, input_dim, output_dim, hidden_dim):
+def get_basic_rnn(timesteps, input_dim, output_dim, hidden_dim, strategy='Xavier'):
     '''
     Returns a dictionary containing the hyperparameters of the basic RNN cell.
 
@@ -88,6 +88,7 @@ def get_basic_rnn(timesteps, input_dim, output_dim, hidden_dim):
         input_dim: Input dimension.
         output_dim: Output dimension.
         hidden_dim: Hidden state dimension.
+        strategy: Initialize strategy, a str, including None, Kaiming, Xavier
 
     Returns:
         A dictionary containing the hyperparameters of the basic RNN cell.
@@ -97,7 +98,8 @@ def get_basic_rnn(timesteps, input_dim, output_dim, hidden_dim):
         'time_steps': timesteps,
         'input_dim': input_dim,
         'output_dim': output_dim,
-        'hidden_dim': hidden_dim
+        'hidden_dim': hidden_dim,
+        'strategy': strategy
     }
 
 
@@ -166,7 +168,7 @@ def _lstm_cell(x, h0, c0,
     return res, h, c
 
 
-def get_lstm(timesteps, input_dim, hidden_dim):
+def get_lstm(timesteps, input_dim, hidden_dim, strategy='Xavier'):
     '''
     Returns a dictionary containing the hyperparameters of the LSTM cell.
 
@@ -174,6 +176,7 @@ def get_lstm(timesteps, input_dim, hidden_dim):
         timesteps: Number of timesteps.
         input_dim: Input dimension.
         hidden_dim: Hidden state dimension.
+        strategy: Initialize strategy, a str, including None, Kaiming, Xavier
 
     Returns:
         A dictionary containing the hyperparameters of the LSTM cell.
@@ -182,7 +185,8 @@ def get_lstm(timesteps, input_dim, hidden_dim):
     return {
         'time_steps': timesteps,
         'input_dim': input_dim,
-        'hidden_dim': hidden_dim
+        'hidden_dim': hidden_dim,
+        'strategy': strategy,
     }
 
 
@@ -248,7 +252,7 @@ def _gru_cell(x, h0,
     return res, h
 
 
-def get_gru(timesteps, input_dim, hidden_dim):
+def get_gru(timesteps, input_dim, hidden_dim, strategy='Xavier'):
     '''
     Returns a dictionary containing the hyperparameters of the GRU cell.
 
@@ -256,6 +260,7 @@ def get_gru(timesteps, input_dim, hidden_dim):
         timesteps: Number of timesteps.
         input_dim: Input dimension.
         hidden_dim: Hidden state dimension.
+        strategy: Initialize strategy, a str, including None, Kaiming, Xavier
 
     Returns:
         A dictionary containing the hyperparameters of the GRU cell.
@@ -264,7 +269,8 @@ def get_gru(timesteps, input_dim, hidden_dim):
     return {
         'time_steps': timesteps,
         'input_dim': input_dim,
-        'hidden_dim': hidden_dim
+        'hidden_dim': hidden_dim,
+        'strategy': strategy,
     }
 
 

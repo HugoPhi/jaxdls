@@ -65,15 +65,16 @@ def _conv2d(x, w, b, padding=1):
     return out + b[None, :, None, None]
 
 
-def get_conv2d(input_channels, output_channels, kernel_size, padding=0):
+def get_conv2d(input_channels, output_channels, kernel_size, padding=0, strategy='Kaiming'):
     '''
     Returns a dictionary of hyperparameters for a 2D convolution layer.
 
     Args:
         input_channels: Number of input channels.
         output_channels: Number of output channels.
-        kernel_size: Kernel size.
+        kernel_size: Kernel size. such as: (2, 2).
         padding: Padding size (default: 0).
+        strategy: Initialize strategy, a str, including None, Kaiming, Xavier
 
     Returns:
         hyperparameters: Dictionary of hyperparameters.
@@ -84,6 +85,7 @@ def get_conv2d(input_channels, output_channels, kernel_size, padding=0):
         'output_channel': output_channels,
         'kernel_size': kernel_size,
         'padding': padding,
+        'strategy': strategy,
     }
 
 
@@ -185,7 +187,7 @@ def _conv1d(x, w, b, padding=1):
     ) + b[None, :, None]
 
 
-def get_conv1d(input_channels, output_channels, kernel_size, padding=0):
+def get_conv1d(input_channels, output_channels, kernel_size, padding=0, strategy='Kaiming'):
     '''
     Returns a dictionary of hyperparameters for a 1D convolution layer.
 
@@ -194,6 +196,7 @@ def get_conv1d(input_channels, output_channels, kernel_size, padding=0):
         output_channels: Number of output channels.
         kernel_size: Kernel size.
         padding: Padding size (default: 0).
+        strategy: Initialize strategy, a str, including None, Kaiming, Xavier
 
     Returns:
         hyperparameters: Dictionary of hyperparameters.
@@ -204,6 +207,7 @@ def get_conv1d(input_channels, output_channels, kernel_size, padding=0):
         'output_channel': output_channels,
         'kernel_size': kernel_size,
         'padding': padding,
+        'strategy': strategy,
     }
 
 
@@ -302,7 +306,7 @@ def _conv3d(x, w, b, padding=1):
     ) + b[None, :, None, None, None]
 
 
-def get_conv3d(input_channels, output_channels, kernel_size, padding=0):
+def get_conv3d(input_channels, output_channels, kernel_size, padding=0, strategy='Kaiming'):
     '''
     Returns a dictionary of hyperparameters for a 3D convolution layer.
 
@@ -311,6 +315,7 @@ def get_conv3d(input_channels, output_channels, kernel_size, padding=0):
         output_channels: Number of output channels.
         kernel_size: Kernel size.
         padding: Padding size (default: 0).
+        strategy: Initialize strategy, a str, including None, Kaiming, Xavier
 
     Returns:
         hyperparameters: Dictionary of hyperparameters.
@@ -321,6 +326,7 @@ def get_conv3d(input_channels, output_channels, kernel_size, padding=0):
         'output_channel': output_channels,
         'kernel_size': kernel_size,
         'padding': padding,
+        'strategy': strategy,
     }
 
 
