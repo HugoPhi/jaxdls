@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. epochs for LeNet  
+On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[98.24%] & loss vs. epochs for LeNet  
 </p>
 
 
@@ -35,7 +35,7 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[97.86%] & loss vs. 
 - Nerual ODE[[5](#reference)]
   - MNIST. <mark>TODO</mark>
 - VAE[[7](#reference)]
-  - MNIST. <mark>TODO</mark>
+  - MNIST. 
 
 ## # NoteBook Docs
 

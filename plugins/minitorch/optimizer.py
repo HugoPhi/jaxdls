@@ -1,7 +1,7 @@
 '''
 JAX Optimization Algorithms Module
 
-* Last Updated: 2025-03-09
+* Last Updated: 2025-03-15
 * Author: HugoPhi, [GitHub](https://github.com/HugoPhi)
 * Maintainer: hugonelsonm3@gmail.com
 
@@ -39,7 +39,7 @@ require proper management of model parameters and optimizer states.
 '''
 
 import jax.numpy as jnp
-from jax import grad, tree, lax
+from jax import grad, tree, lax, random
 from abc import ABC, abstractmethod
 
 
@@ -89,19 +89,20 @@ class Optimizter(ABC):
         '''
         pass
 
-    def open(self, loss_function, x_train: jnp.ndarray, y_train: jnp.ndarray, short_batch='drop'):
+    def open(self, loss_function, x_train: jnp.ndarray, y_train: jnp.ndarray, short_batch='drop', key=random.PRNGKey(42)):
         '''
         Prepares the optimizer for training by initializing its state and setting up the training data.
 
         Args:
             loss_function: A loss function that computes the scalar loss given model parameters,
                           input data, and true labels. It must be JIT-compiled.
-                          Signature: `f(params, x, y_true) -> scalar`.
+                          Signature: `f(params, x, y_true, key=random.PRNGKey(42)) -> scalar`.
             x_train: Input data for training. Shape: `(num_samples, ...)`.
             y_train: True labels for training. Shape: `(num_samples, ...)`.
             short_batch: The Strategy to handle short batch. including:
                 - 'drop': drop short batch, used when: dataset size >> batch size, num_batches = N // B
                 - 'pad': append arr[-B:] to trimmed arr, used when: dataset size >~ batch size, num_batches = N // B + 1
+            key: A random number generator key used for initialization.
 
         Notes:
             - The training data is divided into batches based on the `batch_size` attribute.
@@ -114,6 +115,7 @@ class Optimizter(ABC):
         else:
             self.flash()
             self._loss = loss_function
+            self.key = key
 
             if short_batch == 'drop':
                 self.num_batches = x_train.shape[0] // self.batch_size
@@ -247,6 +249,8 @@ class Adam(Optimizter):
             ixs = jnp.arange(self.num_batches)
             bxs = self.x_train.reshape(self.num_batches, self.batch_size, *self.x_train.shape[1:])
             bys = self.y_train.reshape(self.num_batches, self.batch_size, *self.y_train.shape[1:])
+            subkeys = random.split(self.key, self.num_batches + 1)
+            self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
 
             def one_batch(carry, ix):
 
@@ -270,7 +274,8 @@ class Adam(Optimizter):
 
                 bx = bxs[ix]
                 by = bys[ix]
-                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by)
+                kkey = subkeys[ix]
+                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
 
                 pack = tree.map(adam, d_params, carry['params'], carry['V'], carry['VV'])  # use Adam
                 carry['params'] = tree.map(lambda x: x[0], pack)
@@ -346,6 +351,8 @@ class RawGD(Optimizter):
             ixs = jnp.arange(self.num_batches)
             bxs = self.x_train.reshape(self.num_batches, self.batch_size, *self.x_train.shape[1:])
             bys = self.y_train.reshape(self.num_batches, self.batch_size, *self.y_train.shape[1:])
+            subkeys = random.split(self.key, self.num_batches + 1)
+            self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
 
             def one_batch(carry, ix):
 
@@ -355,8 +362,9 @@ class RawGD(Optimizter):
 
                 bx = bxs[ix]
                 by = bys[ix]
+                kkey = subkeys[ix]
 
-                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by)
+                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
 
                 pack = tree.map(gd, d_params, carry['params'])
                 carry['params'] = pack
@@ -436,6 +444,8 @@ class Momenum(Optimizter):
             ixs = jnp.arange(self.num_batches)
             bxs = self.x_train.reshape(self.num_batches, self.batch_size, *self.x_train.shape[1:])
             bys = self.y_train.reshape(self.num_batches, self.batch_size, *self.y_train.shape[1:])
+            subkeys = random.split(self.key, self.num_batches + 1)
+            self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
 
             def one_batch(carry, ix):
 
@@ -446,7 +456,9 @@ class Momenum(Optimizter):
 
                 bx = bxs[ix]
                 by = bys[ix]
-                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by)
+                kkey = subkeys[ix]
+
+                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
 
                 pack = tree.map(momentum, d_params, carry['params'], carry['V'])
                 carry['params'] = tree.map(lambda x: x[0], pack)
@@ -529,6 +541,8 @@ class Nesterov(Optimizter):
             ixs = jnp.arange(self.num_batches)
             bxs = self.x_train.reshape(self.num_batches, self.batch_size, *self.x_train.shape[1:])
             bys = self.y_train.reshape(self.num_batches, self.batch_size, *self.y_train.shape[1:])
+            subkeys = random.split(self.key, self.num_batches + 1)
+            self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
 
             def one_batch(carry, ix):
 
@@ -541,7 +555,9 @@ class Nesterov(Optimizter):
 
                 bx = bxs[ix]
                 by = bys[ix]
-                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by)
+                kkey = subkeys[ix]
+
+                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
 
                 pack = tree.map(nag, d_params, carry['params'], carry['V'])
                 carry['params'] = tree.map(lambda x: x[0], pack)
@@ -623,6 +639,8 @@ class AdaGrad(Optimizter):
             ixs = jnp.arange(self.num_batches)
             bxs = self.x_train.reshape(self.num_batches, self.batch_size, *self.x_train.shape[1:])
             bys = self.y_train.reshape(self.num_batches, self.batch_size, *self.y_train.shape[1:])
+            subkeys = random.split(self.key, self.num_batches + 1)
+            self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
 
             def one_batch(carry, ix):
 
@@ -633,7 +651,9 @@ class AdaGrad(Optimizter):
 
                 bx = bxs[ix]
                 by = bys[ix]
-                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by)
+                kkey = subkeys[ix]
+
+                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
 
                 pack = tree.map(adagrad, d_params, carry['params'], carry['G'])
                 carry['params'] = tree.map(lambda x: x[0], pack)
@@ -720,6 +740,8 @@ class RMSProp(Optimizter):
             ixs = jnp.arange(self.num_batches)
             bxs = self.x_train.reshape(self.num_batches, self.batch_size, *self.x_train.shape[1:])
             bys = self.y_train.reshape(self.num_batches, self.batch_size, *self.y_train.shape[1:])
+            subkeys = random.split(self.key, self.num_batches + 1)
+            self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
 
             def one_batch(carry, ix):
 
@@ -730,7 +752,9 @@ class RMSProp(Optimizter):
 
                 bx = bxs[ix]
                 by = bys[ix]
-                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by)
+                kkey = subkeys[ix]
+
+                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
 
                 pack = tree.map(rmsprop, d_params, carry['params'], carry['G'])
                 carry['params'] = tree.map(lambda x: x[0], pack)
@@ -817,6 +841,8 @@ class AdaDelta(Optimizter):
             ixs = jnp.arange(self.num_batches)
             bxs = self.x_train.reshape(self.num_batches, self.batch_size, *self.x_train.shape[1:])
             bys = self.y_train.reshape(self.num_batches, self.batch_size, *self.y_train.shape[1:])
+            subkeys = random.split(self.key, self.num_batches + 1)
+            self.key, subkeys = subkeys[0], subkeys[1:]  # update self.key & get subkeys
 
             def one_batch(carry, ix):
 
@@ -829,7 +855,9 @@ class AdaDelta(Optimizter):
 
                 bx = bxs[ix]
                 by = bys[ix]
-                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by)
+                kkey = subkeys[ix]
+
+                d_params = grad(self._loss, argnums=0)(carry['params'], bx, by, kkey)
 
                 pack = tree.map(adadelta, d_params, carry['params'], carry['E_g2'], carry['E_dx2'])
                 carry['params'] = tree.map(lambda x: x[0], pack)
