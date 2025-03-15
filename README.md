@@ -91,23 +91,23 @@ Overview of Framework
 
 #### 🗠 Number of Codes
 
-Last update: 2025.03.10.   
+Last update: 2025.03.14.   
 
 ```text
-      62 text files.
-      42 unique files.                              
-      45 files ignored.
+      68 text files.
+      49 unique files.                              
+      49 files ignored.
 
-github.com/AlDanial/cloc v 1.98  T=0.03 s (1424.3 files/s, 266787.9 lines/s)
+github.com/AlDanial/cloc v 1.98  T=0.04 s (1365.4 files/s, 303229.6 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Jupyter Notebook                17              0           2711           1531
-Python                          19            765           1370           1229
-Text                             5              1              0            161
-Markdown                         1             15              0             84
+Jupyter Notebook                21              0           3954           2022
+Python                          21           1014           1805           1669
+Text                             6              1              0            295
+Markdown                         1             19              0            103
 -------------------------------------------------------------------------------
-SUM:                            42            781           4081           3005
+SUM:                            49           1034           5759           4089
 -------------------------------------------------------------------------------
 ```
 
