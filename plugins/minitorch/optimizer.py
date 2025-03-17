@@ -60,7 +60,7 @@ class Optimizter(ABC):
         params: The model parameters to be optimized.
         lr: Learning rate (if applicable to the optimizer).
         batch_size: Size of each training batch.
-        open: A boolean indicating whether the optimizer is in an active state (open for training).
+        is_open: A boolean indicating whether the optimizer is in an active state (open for training).
         steps: The number of optimization steps taken so far.
     '''
 
@@ -70,6 +70,7 @@ class Optimizter(ABC):
         Initializes the optimizer. Subclasses must implement this method to set up optimizer-specific
         attributes (e.g., learning rate, momentum, etc.) and initialize the model parameters.
         '''
+        self.is_open = False
         pass
 
     @abstractmethod
@@ -110,9 +111,11 @@ class Optimizter(ABC):
             - The optimizer must be opened before calling `update` or accessing parameters.
         '''
 
-        if self.open is True:
+        if self.is_open is True:
             print('oprimizer is already opened.')
         else:
+            self.is_open = True
+
             self.flash()
             self._loss = loss_function
             self.key = key
@@ -132,17 +135,16 @@ class Optimizter(ABC):
                 raise ValueError(f'short_batch must be in "drop" or "pad", but get {short_batch} instead.')
 
             print(f'[*] oprimizer opened with {self.num_batches} batches with batch size {self.batch_size}.')
-            self.open = True
 
     def close(self):
         '''
         Closes the optimizer, preventing further updates or parameter access until it is reopened.
         '''
 
-        if self.open is False:
+        if self.is_open is False:
             print('oprimizer is already closed.')
         else:
-            self.open = False
+            self.is_open = False
 
     def get_params(self):
         '''
@@ -150,15 +152,9 @@ class Optimizter(ABC):
 
         Returns:
             The model parameters being optimized.
-
-        Raises:
-            ValueError: If the optimizer is not open.
         '''
 
-        if self.open is False:
-            raise ValueError('please open optimizer first!!!')
-        else:
-            return self.params
+        return self.params
 
     def get_steps(self):
         '''
@@ -166,15 +162,9 @@ class Optimizter(ABC):
 
         Returns:
             The number of steps (integer).
-
-        Raises:
-            ValueError: If the optimizer is not open.
         '''
 
-        if self.open is False:
-            raise ValueError('please open optimizer first!!!')
-        else:
-            return self.steps
+        return self.steps
 
 
 class Adam(Optimizter):
@@ -193,7 +183,7 @@ class Adam(Optimizter):
         V: First moment vector (momentum-like term).
         VV: Second moment vector (RMSProp-like term).
         steps: Number of optimization steps taken so far.
-        open: Boolean indicating whether the optimizer is active.
+        is_open: Boolean indicating whether the optimizer is active.
     '''
 
     def __init__(self, params,
@@ -232,7 +222,6 @@ class Adam(Optimizter):
         self.VV = tree.map(lambda x: jnp.zeros_like(x), self.params)
 
         self.steps = 0
-        self.open = False
 
     def update(self):
         '''
@@ -243,7 +232,7 @@ class Adam(Optimizter):
             ValueError: If the optimizer is not open.
         '''
 
-        if self.open is False:
+        if self.is_open is False:
             raise ValueError('please open optimizer first!!!')
         else:
             ixs = jnp.arange(self.num_batches)
@@ -340,7 +329,7 @@ class RawGD(Optimizter):
         '''
 
         self.steps = 0
-        self.open = False
+        self.is_open = False
 
     def update(self):
         '''
@@ -351,7 +340,7 @@ class RawGD(Optimizter):
             ValueError: If the optimizer is not open.
         '''
 
-        if self.open is False:
+        if self.is_open is False:
             raise ValueError('please open optimizer first!!!')
         else:
             ixs = jnp.arange(self.num_batches)
@@ -438,7 +427,7 @@ class Momenum(Optimizter):
         self.V = tree.map(lambda x: jnp.zeros_like(x), self.params)
 
         self.steps = 0
-        self.open = 0
+        self.is_open = 0
 
     def update(self):
         '''
@@ -449,7 +438,7 @@ class Momenum(Optimizter):
             ValueError: If the optimizer is not open.
         '''
 
-        if self.open is False:
+        if self.is_open is False:
             raise ValueError('please open optimizer first!!!')
         else:
             ixs = jnp.arange(self.num_batches)
@@ -539,7 +528,7 @@ class Nesterov(Optimizter):
         self.V = tree.map(lambda x: jnp.zeros_like(x), self.params)
 
         self.steps = 0
-        self.open = False
+        self.is_open = False
 
     def update(self):
         '''
@@ -551,7 +540,7 @@ class Nesterov(Optimizter):
             ValueError: If the optimizer is not open.
         '''
 
-        if self.open is False:
+        if self.is_open is False:
             raise ValueError('please open optimizer first!!!')
         else:
             ixs = jnp.arange(self.num_batches)
@@ -643,7 +632,7 @@ class AdaGrad(Optimizter):
         self.G = tree.map(lambda x: jnp.zeros_like(x), self.params)
 
         self.steps = 0
-        self.open = False
+        self.is_open = False
 
     def update(self):
         '''
@@ -654,7 +643,7 @@ class AdaGrad(Optimizter):
             ValueError: If the optimizer is not open.
         '''
 
-        if self.open is False:
+        if self.is_open is False:
             raise ValueError('please open optimizer first!!!')
         else:
             ixs = jnp.arange(self.num_batches)
@@ -748,7 +737,7 @@ class RMSProp(Optimizter):
         self.G = tree.map(lambda x: jnp.zeros_like(x), self.params)
 
         self.steps = 0
-        self.open = False
+        self.is_open = False
 
     def update(self):
         '''
@@ -760,7 +749,7 @@ class RMSProp(Optimizter):
             ValueError: If the optimizer is not open.
         '''
 
-        if self.open is False:
+        if self.is_open is False:
             raise ValueError('please open optimizer first!!!')
         else:
             ixs = jnp.arange(self.num_batches)
@@ -854,7 +843,7 @@ class AdaDelta(Optimizter):
         self.E_dx2 = tree.map(lambda x: jnp.zeros_like(x), self.params)  # expontential average of squared update
 
         self.steps = 0
-        self.open = False
+        self.is_open = False
 
     def update(self):
         '''
@@ -866,7 +855,7 @@ class AdaDelta(Optimizter):
             ValueError: If the optimizer is not open.
         '''
 
-        if self.open is False:
+        if self.is_open is False:
             raise ValueError('please open optimizer first!!!')
         else:
             ixs = jnp.arange(self.num_batches)

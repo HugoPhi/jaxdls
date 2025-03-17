@@ -1,4 +1,5 @@
-from . import nn, utils, optimizer, initer
+from . import nn, utils, optimizer
+from .initer import Initer
 
 
-__all__ = ['nn', 'utils', 'optimizer', 'initer']
+__all__ = ['nn', 'utils', 'optimizer', 'Initer']

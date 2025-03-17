@@ -40,8 +40,6 @@ from abc import ABC, abstractmethod
 from .JaxOptimized import conv as Conv, rnncell as Rnn, fc as Dense
 # from .RawVersion import conv as Conv, rnncell as Rnn, fc as Dense  # RawVersion, Deprecated on 2025-03-09
 
-from ..utils import cross_entropy_loss
-
 
 @jit
 def _acc(y_true_proba, y_pred_proba):
@@ -61,19 +59,23 @@ def _acc(y_true_proba, y_pred_proba):
     return jnp.mean(y_true == y_pred)
 
 
-class Model(ABC):
+class Classifier(ABC):
     '''
-    An abstract base class for defining, training, and evaluating neural network models.
+    An abstract base class for defining, training, and evaluating neural network classifier.
 
-    This class provides a framework for building neural network models, including support for
+    This class provides a framework for building neural network classifier, including support for
     optimization, dropout, and logging during training. Subclasses must implement the
     `predict_proba` method to define the model's forward pass.
 
     Attributes:
+        config (dict): Configuration dictionary for model hyperparameters.
+        optr (Optimizer): Optimizer instance (e.g., Adam, SGD). Must be set by subclasses.
+        lossr (Loss): Loss instance (e.g., CrossEntropyLoss). Must be set by subclasses.
+        lr (float): Learning rate for the optimizer (default: 0.01).
+        batch_size (int): Batch size (default: 32).
         epoches (int): Number of training epochs (default: 100).
         log_wise (int): Frequency of logging during training (default: 10).
-        optr (Optimizer): Optimizer instance (e.g., Adam, SGD). Must be set by subclasses.
-        train (bool): Boolean flag indicating whether the model is in training mode.
+        batch_size (int): Batch size (default: 32).
 
     Methods:
         __init__: Initializes the NNModel class.
@@ -88,9 +90,9 @@ class Model(ABC):
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 # Initialize model parameters and optimizer
-                self.optr = Adam(params, lr=self.lr, beta1=self.beta1, beta2=self.beta2, epsilon=self.epsilon)
+                self.optr = Adam(params, lr=self.lr, batch_size=batch_size)
 
-            def predict_proba(self, x, params, train=True):
+            def forward(self, x, params, train=True):
                 # Define the forward pass of the model
                 pass
 
@@ -102,32 +104,26 @@ class Model(ABC):
     ```
     '''
 
-    def __init__(self,
-                 lr=0.01,
-                 beta1=0.9,
-                 beta2=0.999,
-                 epsilon=1e-6,
-                 epoches=100,
-                 log_wise=10):
+    def __init__(self, lr=0.01, batch_size=32, epoches=100, log_wise=10):
         '''
         Initializes the NNModel class.
 
         Args:
             lr: Learning rate for the optimizer (default: 0.01).
-            beta1: Beta1 parameter for the optimizer (default: 0.9).
-            beta2: Beta2 parameter for the optimizer (default: 0.999).
-            epsilon: Small constant for numerical stability (default: 1e-6).
+            batch_size: Batch size. (default: 32).
             epoches: Number of training epochs (default: 100).
-            log_wise: Frequency of logging (default: 10)
+            log_wise: Frequency of logging (default: 10).
         '''
 
         self.epoches = epoches
         self.log_wise = log_wise
+        self.batch_size = batch_size
+        self.config = None
         self.optr = None
-        self.lossr = None
+        self.losr = None
 
     @abstractmethod
-    def predict_proba(self, x: jnp.ndarray, params, train=True):
+    def forward(self, x: jnp.ndarray, params, train=True, key=None):
         '''
         Abstract method for making predictions using the model.
 
@@ -135,6 +131,7 @@ class Model(ABC):
             x: Input data of shape (batch_size, ...).
             params: Model parameters.
             train: Whether the model is in training mode (default: True).
+            key: Random Key for jax, used for dropout & generative model (default: None).
 
         Returns:
             Predicted probabilities for each class.
@@ -151,7 +148,6 @@ class Model(ABC):
             y_train_proba: Training labels (one-hot encoded) of shape (batch_size, num_classes).
             x_test: Test input data of shape (batch_size, ...).
             y_test_proba: Test labels (one-hot encoded) of shape (batch_size, num_classes).
-            epoches: Number of training epochs (default: 100).
 
         Returns:
             acc: List of training accuracy values for each epoch.
@@ -160,26 +156,24 @@ class Model(ABC):
             tloss: List of test loss values for each epoch.
         '''
 
-        cnt = 0
-
-        _loss = jit(self.lossr.get_loss(train=True))
+        _loss = jit(self.losr.get_loss(train=True))
         self.optr.open(_loss, x_train, y_train_proba)
 
-        _tloss = jit(self.lossr.get_embed_loss(x_test, y_test_proba, train=False))
+        _tloss = jit(self.losr.get_embed_loss(x_test, y_test_proba, train=False))
 
         acc, loss, tacc, tloss = [], [], [], []  # train acc, train loss, test acc, test loss
 
-        for _ in range(self.epoches):
+        for cnt in range(self.epoches):
             loss.append(_loss(self.optr.get_params(), x_train, y_train_proba))
             tloss.append(_tloss(self.optr.get_params()))
 
             self.optr.update()
 
-            acc.append(_acc(y_train_proba, self.predict_proba(x_train, self.optr.get_params())))
-            tacc.append(_acc(y_test_proba, self.predict_proba(x_test, self.optr.get_params())))
-            cnt += 1
-            if cnt % self.log_wise == 0:
-                print(f'>> epoch: {cnt}, train acc: {acc[-1]}, train loss: {loss[-1]}; test acc: {tacc[-1]}, test loss: {tloss[-1]}')
+            acc.append(_acc(y_train_proba, self.forward(x_train, self.optr.get_params())))
+            tacc.append(_acc(y_test_proba, self.forward(x_test, self.optr.get_params())))
+
+            if (cnt + 1) % self.log_wise == 0:
+                print(f'>> epoch: {(cnt + 1)}, train acc: {acc[-1]}, train loss: {loss[-1]}; test acc: {tacc[-1]}, test loss: {tloss[-1]}')
 
         return acc, loss, tacc, tloss
 
