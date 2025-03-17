@@ -35,7 +35,7 @@ import jax.numpy as jnp
 from jax import random
 
 
-def dropout(x: jnp.ndarray, key, p=0.5, train=True):
+def dropout(key, x: jnp.ndarray, p=0.5, train=True):
     '''
     Applies dropout to the input array during training.
 
@@ -76,7 +76,7 @@ def dropout(x: jnp.ndarray, key, p=0.5, train=True):
     new_key, use_key = random.split(key)  # update key, to make mask different in different **batch**.
     mask = random.bernoulli(use_key, p_keep, x.shape)
 
-    return jnp.where(mask, x / p_keep, 0), new_key  # scale here to make E(X) the same while evaluating.
+    return new_key, jnp.where(mask, x / p_keep, 0)  # scale here to make E(X) the same while evaluating.
 
 
 def _linear(x: jnp.ndarray, w: jnp.ndarray, b: jnp.ndarray):

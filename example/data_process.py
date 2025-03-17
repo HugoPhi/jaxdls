@@ -75,7 +75,7 @@ else:
 # X_train = jnp.transpose(X_train, (2, 0, 1))
 # X_test = jnp.transpose(X_test, (2, 0, 1))
 
-print('X_train 形状:', X_train.shape)  # 应为 (128, 7352, 9)
+print('X_train 形状:', X_train.shape)  # 应为 (7352, 9, 128)
 print('y_train 形状:', y_train.shape)  # 应为 (7352, 6)
 print('X_test  形状:', X_test.shape)
 print('y_test  形状:', y_test.shape)
