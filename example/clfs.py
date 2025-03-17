@@ -99,3 +99,7 @@ class gru(Clfs):
             self.optr.update()
 
         self.optr.close()
+
+
+class conv3x3(Clfs):
+    pass
