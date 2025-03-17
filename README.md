@@ -69,6 +69,8 @@ Overview of Framework
     - Basic rnn kernel
     - LSTM kernel
     - GRU kernel
+    - BiLSTM kernel <mark>TODO</mark>
+    - BiGRU kernel <mark>TODO</mark>
   - FC
     - Dropout
     - Linear

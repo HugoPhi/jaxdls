@@ -7,11 +7,11 @@ from plugins.minitorch.optimizer import Adam
 from plugins.minitorch.loss import CrossEntropyLoss
 from plugins.minitorch.utils import softmax
 
-from plugins.lrkit.clfs import Clfs, timing
+from plugins.lrkit import ClfTrait, timing
 
 
-class lstm(Clfs):
-    def __init__(self, lr, epoches, batch_size, depth=1):
+class lstm(ClfTrait):
+    def __init__(self, lr, epoches, batch_size):
         super(lstm, self).__init__()
 
         self.config = {
@@ -56,8 +56,8 @@ class lstm(Clfs):
         self.optr.close()
 
 
-class gru(Clfs):
-    def __init__(self, lr, epoches, batch_size, depth=1):
+class gru(ClfTrait):
+    def __init__(self, lr, epoches, batch_size):
         super(gru, self).__init__()
 
         self.config = {
@@ -101,8 +101,8 @@ class gru(Clfs):
         self.optr.close()
 
 
-class conv1dx3(Clfs):
-    def __init__(self, lr, epoches, batch_size, depth=1):
+class conv1dx3(ClfTrait):
+    def __init__(self, lr, epoches, batch_size):
         super(conv1dx3, self).__init__()
 
         self.config = {
