@@ -10,6 +10,15 @@ from plugins.minitorch.utils import softmax
 from plugins.lrkit import ClfTrait, timing
 
 
+def acc(y_true, y_pred):
+    return jnp.mean(jnp.argmax(y_true, axis=1) == jnp.argmax(y_pred, axis=1))
+
+
+'''
+rnn based model
+'''
+
+
 class lstm(ClfTrait):
     def __init__(self, lr, epoches, batch_size):
         super(lstm, self).__init__()
@@ -49,7 +58,7 @@ class lstm(ClfTrait):
         log_wise = self.epoches // 10 if self.epoches >= 10 else self.epoches
         for cnt in range(self.epoches):
             if (cnt + 1) % log_wise == 0:
-                print(f'====> Epoch {cnt + 1}/{self.epoches}, loss: {_tloss(self.optr.get_params(), x, y)}')
+                print(f'====> Epoch {cnt + 1}/{self.epoches}, loss: {_tloss(self.optr.get_params(), x, y)}, acc: {acc(y, self.predict_proba(x))}')
 
             self.optr.update()
 
@@ -94,11 +103,108 @@ class gru(ClfTrait):
         log_wise = self.epoches // 10 if self.epoches >= 10 else self.epoches
         for cnt in range(self.epoches):
             if (cnt + 1) % log_wise == 0:
-                print(f'====> Epoch {cnt + 1}/{self.epoches}, loss: {_tloss(self.optr.get_params(), x, y)}')
+                print(f'====> Epoch {cnt + 1}/{self.epoches}, loss: {_tloss(self.optr.get_params(), x, y)}, acc: {acc(y, self.predict_proba(x))}')
 
             self.optr.update()
 
         self.optr.close()
+
+
+class bilstm(ClfTrait):
+    def __init__(self, lr, epoches, batch_size):
+        super(bilstm, self).__init__()
+
+        self.config = {
+            'bilstm:0': Rnn.get_lstm(128, 9, 64),
+            'fc:0': Dense.get_linear(128, 6),
+        }
+
+        self.epoches = epoches
+        self.lr = lr
+        self.batch_size = batch_size
+        self.losr = CrossEntropyLoss(self.forward)
+
+    def forward(self, x, params, train=False):
+        res = jnp.transpose(x, (2, 0, 1))
+        res, _, _ = Rnn.bilstm(res, params['bilstm:0'], self.config['bilstm:0'])
+        res = res[-1]
+
+        res = Dense.linear(res, params['fc:0'])
+
+        return softmax(res)
+
+    @timing
+    def predict_proba(self, x):
+        return self.forward(params=self.optr.get_params(), x=x, train=False)
+
+    @timing
+    def fit(self, x, y):
+        self.optr = Adam(Initer(self.config, random.PRNGKey(42))(), lr=self.lr, batch_size=self.batch_size)
+
+        _loss = self.losr.get_loss(True)
+        self.optr.open(_loss, x, y)
+
+        _tloss = self.losr.get_loss(False)
+
+        log_wise = self.epoches // 10 if self.epoches >= 10 else self.epoches
+        for cnt in range(self.epoches):
+            if (cnt + 1) % log_wise == 0:
+                print(f'====> Epoch {cnt + 1}/{self.epoches}, loss: {_tloss(self.optr.get_params(), x, y)}, acc: {acc(y, self.predict_proba(x))}')
+
+            self.optr.update()
+
+        self.optr.close()
+
+
+class bigru(ClfTrait):
+    def __init__(self, lr, epoches, batch_size):
+        super(bigru, self).__init__()
+
+        self.config = {
+            'bigru:0': Rnn.get_bigru(128, 9, 64),
+            'fc:0': Dense.get_linear(128, 6),
+        }
+
+        self.epoches = epoches
+        self.lr = lr
+        self.batch_size = batch_size
+        self.losr = CrossEntropyLoss(self.forward)
+
+    def forward(self, x, params, train=False):
+        res = jnp.transpose(x, (2, 0, 1))
+        res, _ = Rnn.bigru(res, params['bigru:0'], self.config['bigru:0'])
+        res = res[-1]
+
+        res = Dense.linear(res, params['fc:0'])
+
+        return softmax(res)
+
+    @timing
+    def predict_proba(self, x):
+        return self.forward(params=self.optr.get_params(), x=x, train=False)
+
+    @timing
+    def fit(self, x, y):
+        self.optr = Adam(Initer(self.config, random.PRNGKey(42))(), lr=self.lr, batch_size=self.batch_size)
+
+        _loss = self.losr.get_loss(True)
+        self.optr.open(_loss, x, y)
+
+        _tloss = self.losr.get_loss(False)
+
+        log_wise = self.epoches // 10 if self.epoches >= 10 else self.epoches
+        for cnt in range(self.epoches):
+            if (cnt + 1) % log_wise == 0:
+                print(f'====> Epoch {cnt + 1}/{self.epoches}, loss: {_tloss(self.optr.get_params(), x, y)}, acc: {acc(y, self.predict_proba(x))}')
+
+            self.optr.update()
+
+        self.optr.close()
+
+
+'''
+cnn based model
+'''
 
 
 class conv1dx3(ClfTrait):
@@ -160,7 +266,7 @@ class conv1dx3(ClfTrait):
         log_wise = self.epoches // 10 if self.epoches >= 10 else self.epoches
         for cnt in range(self.epoches):
             if (cnt + 1) % log_wise == 0:
-                print(f'====> Epoch {cnt + 1}/{self.epoches}, loss: {_tloss(self.optr.get_params(), x, y)}')
+                print(f'====> Epoch {cnt + 1}/{self.epoches}, loss: {_tloss(self.optr.get_params(), x, y)}, acc: {acc(y, self.predict_proba(x))}')
 
             self.optr.update()
 

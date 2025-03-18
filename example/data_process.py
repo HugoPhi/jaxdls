@@ -57,7 +57,7 @@ y_test = one_hot(y_test, 6)
 TRAIN = None
 TEST = None
 
-Shuffle = False
+Shuffle = True
 
 if Shuffle:
     shuffle_kernel = random.permutation(key, (X_train.shape[0]))
