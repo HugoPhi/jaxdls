@@ -1,0 +1,24 @@
+[gru]
+lr = 0.005
+epoches = 50
+batch_size = 64
+
+[lstm]
+lr = 0.005
+epoches = 40
+batch_size = 64
+
+[bigru]
+lr = 0.005
+epoches = 50
+batch_size = 64
+
+[bilstm]
+lr = 0.005
+epoches = 100
+batch_size = 64
+
+[conv1dx3]
+lr = 0.001
+epoches = 100
+batch_size = 128
