@@ -291,3 +291,210 @@ def gru(x, params, config):
     Us = params['Us']
     Bs = params['Bs']
     return _gru_cell(x, h0, Ws, Us, Bs)
+
+
+def _bidirectional_lstm_cell(x, h0, c0, Ws, Us, Bs):
+    '''
+    Implements a bidirectional LSTM cell using `lax.scan` for optimization.
+
+    Args:
+        x: Input sequence of shape (S, B, I), where:
+           - S: Sequence length
+           - B: Batch size
+           - I: Input dimension
+        h0: Initial hidden state of shape (B, 2H), where:
+            - H: Hidden state dimension
+        c0: Initial cell state of shape (B, 2H).
+        Ws: Weight matrices for input-to-hidden transformations of shape (8, I, H).
+            - First 4 matrices are for forward direction
+            - Last 4 matrices are for backward direction
+        Us: Weight matrices for hidden-to-hidden transformations of shape (8, H, H).
+            - First 4 matrices are for forward direction
+            - Last 4 matrices are for backward direction
+        Bs: Bias vectors of shape (8, H).
+            - First 4 vectors are for forward direction
+            - Last 4 vectors are for backward direction
+
+    Returns:
+        res: Output sequence of shape (S, B, 2H).
+        h: Final hidden state of shape (B, 2H).
+        c: Final cell state of shape (B, 2H).
+    '''
+
+    # Split parameters for forward and backward directions
+    Ws_forward, Ws_backward = Ws[:4], Ws[4:]  # (4, I, H) each
+    Us_forward, Us_backward = Us[:4], Us[4:]  # (4, H, H) each
+    Bs_forward, Bs_backward = Bs[:4], Bs[4:]  # (4, H) each
+
+    # Forward LSTM
+    res_forward, h_forward, c_forward = _lstm_cell(
+        x,
+        h0[:, :h0.shape[-1] // 2],  # Use first half of h0
+        c0[:, :c0.shape[-1] // 2],  # Use first half of c0
+        tuple(Ws_forward),
+        tuple(Us_forward),
+        tuple(Bs_forward)
+    )
+
+    # Backward LSTM
+    res_backward, h_backward, c_backward = _lstm_cell(
+        jnp.flip(x, axis=0),
+        h0[:, h0.shape[-1] // 2:],  # Use second half of h0
+        c0[:, c0.shape[-1] // 2:],  # Use second half of c0
+        tuple(Ws_backward),
+        tuple(Us_backward),
+        tuple(Bs_backward)
+    )
+
+    # Concatenate results
+    return (
+        jnp.concatenate([res_forward, jnp.flip(res_backward, axis=0)], axis=-1),
+        jnp.concatenate([h_forward, h_backward], axis=-1),
+        jnp.concatenate([c_forward, c_backward], axis=-1)
+    )
+
+
+def get_bilstm(timesteps, input_dim, hidden_dim, strategy='Xavier'):
+    '''
+    Returns a dictionary containing the hyperparameters of the bidirectional LSTM cell.
+
+    Args:
+        timesteps: Number of timesteps.
+        input_dim: Input dimension.
+        hidden_dim: Hidden state dimension.
+        strategy: Initialize strategy, a str, including None, Kaiming, Xavier.
+
+    Returns:
+        A dictionary containing the hyperparameters of the bidirectional LSTM cell.
+    '''
+    return {
+        'time_steps': timesteps,
+        'input_dim': input_dim,
+        'hidden_dim': hidden_dim,
+        'strategy': strategy,
+    }
+
+
+def bilstm(x, params, config):
+    '''
+    Implements a bidirectional LSTM cell using `lax.scan` for optimization.
+
+    Args:
+        x: Input sequence of shape (S, B, I), where:
+           - S: Sequence length
+           - B: Batch size
+           - I: Input dimension
+        params: Dictionary containing the parameters:
+            - Ws: Weight matrices for input-to-hidden transformations of shape (8, I, H).
+            - Us: Weight matrices for hidden-to-hidden transformations of shape (8, H, H).
+            - Bs: Bias vectors of shape (8, H).
+        config: Dictionary containing the hyperparameters.
+
+    Returns:
+        res: Output sequence of shape (S, B, 2H).
+        h: Final hidden state of shape (B, 2H).
+        c: Final cell state of shape (B, 2H).
+    '''
+    h0 = jnp.zeros((x.shape[1], 2 * config['hidden_dim']))  # (B, 2H)
+    c0 = jnp.zeros((x.shape[1], 2 * config['hidden_dim']))  # (B, 2H)
+    return _bidirectional_lstm_cell(x, h0, c0, params['Ws'], params['Us'], params['Bs'])
+
+
+def _bidirectional_gru_cell(x, h0, Ws, Us, Bs):
+    '''
+    Implements a bidirectional GRU cell using `lax.scan` for optimization.
+
+    Args:
+        x: Input sequence of shape (S, B, I), where:
+           - S: Sequence length
+           - B: Batch size
+           - I: Input dimension
+        h0: Initial hidden state of shape (B, 2H), where:
+            - H: Hidden state dimension
+        Ws: Weight matrices for input-to-hidden transformations of shape (6, I, H).
+            - First 3 matrices are for forward direction
+            - Last 3 matrices are for backward direction
+        Us: Weight matrices for hidden-to-hidden transformations of shape (6, H, H).
+            - First 3 matrices are for forward direction
+            - Last 3 matrices are for backward direction
+        Bs: Bias vectors of shape (6, H).
+            - First 3 vectors are for forward direction
+            - Last 3 vectors are for backward direction
+
+    Returns:
+        res: Output sequence of shape (S, B, 2H).
+        h: Final hidden state of shape (B, 2H).
+    '''
+
+    # Split parameters for forward and backward directions
+    Ws_forward, Ws_backward = Ws[:3], Ws[3:]  # (3, I, H) each
+    Us_forward, Us_backward = Us[:3], Us[3:]  # (3, H, H) each
+    Bs_forward, Bs_backward = Bs[:3], Bs[3:]  # (3, H) each
+
+    # Forward GRU
+    res_forward, h_forward = _gru_cell(
+        x,
+        h0[:, :h0.shape[-1] // 2],  # Use first half of h0
+        tuple(Ws_forward),
+        tuple(Us_forward),
+        tuple(Bs_forward)
+    )
+
+    # Backward GRU
+    res_backward, h_backward = _gru_cell(
+        jnp.flip(x, axis=0),
+        h0[:, h0.shape[-1] // 2:],  # Use second half of h0
+        tuple(Ws_backward),
+        tuple(Us_backward),
+        tuple(Bs_backward)
+    )
+
+    # Concatenate results
+    return (
+        jnp.concatenate([res_forward, jnp.flip(res_backward, axis=0)], axis=-1),
+        jnp.concatenate([h_forward, h_backward], axis=-1)
+    )
+
+
+def get_bigru(timesteps, input_dim, hidden_dim, strategy='Xavier'):
+    '''
+    Returns a dictionary containing the hyperparameters of the bidirectional GRU cell.
+
+    Args:
+        timesteps: Number of timesteps.
+        input_dim: Input dimension.
+        hidden_dim: Hidden state dimension.
+        strategy: Initialize strategy, a str, including None, Kaiming, Xavier.
+
+    Returns:
+        A dictionary containing the hyperparameters of the bidirectional GRU cell.
+    '''
+    return {
+        'time_steps': timesteps,
+        'input_dim': input_dim,
+        'hidden_dim': hidden_dim,
+        'strategy': strategy,
+    }
+
+
+def bigru(x, params, config):
+    '''
+    Implements a bidirectional GRU cell using `lax.scan` for optimization.
+
+    Args:
+        x: Input sequence of shape (S, B, I), where:
+           - S: Sequence length
+           - B: Batch size
+           - I: Input dimension
+        params: Dictionary containing the parameters:
+            - Ws: Weight matrices for input-to-hidden transformations of shape (6, I, H).
+            - Us: Weight matrices for hidden-to-hidden transformations of shape (6, H, H).
+            - Bs: Bias vectors of shape (6, H).
+        config: Dictionary containing the hyperparameters.
+
+    Returns:
+        res: Output sequence of shape (S, B, 2H).
+        h: Final hidden state of shape (B, 2H).
+    '''
+    h0 = jnp.zeros((x.shape[1], 2 * config['hidden_dim']))  # (B, 2H)
+    return _bidirectional_gru_cell(x, h0, params['Ws'], params['Us'], params['Bs'])

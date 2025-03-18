@@ -10,7 +10,9 @@ class Initer:
     Supported layer types:
     - Basic Recurrent Neural Network (basic_rnn)
     - Long Short-Term Memory (lstm)
+    - Bidirectional Long Short-Term Memory (bilstm)
     - Gated Recurrent Unit (gru)
+    - Bidirectional Gated Recurrent Unit (bigru)
     - Fully Connected (fc) layers
     - 1D Convolutional layers (conv1d)
     - 2D Convolutional layers (conv2d)
@@ -19,7 +21,9 @@ class Initer:
     Their name should be like:
     - "basic_rnn:"
     - "lstm:"
+    - "bilstm:"
     - "gru:"
+    - "bigru:"
     - "fc:"
     - "conv1d:"
     - "conv2d:"
@@ -31,6 +35,7 @@ class Initer:
     '''
 
     SupportLayers = ('basic_rnn', 'lstm', 'gru',
+                     'bilstm', 'bigru',
                      'fc',
                      'conv1d', 'conv2d', 'conv3d')
 
@@ -80,6 +85,169 @@ class Initer:
         f = getattr(self, f'_{layer_type}', None)
 
         return f(name)
+
+    def _bilstm(self, name):
+        '''
+        Initializes parameters for a bidirectional LSTM layer.
+
+        Config should be:
+        ```
+        name: {
+            'input_dim': int,  # Input dimension
+            'hidden_dim': int,  # Hidden state dimension
+            'strategy': str,  # Initial strategy, including None, Kaiming, Xavier
+        }
+        ```
+
+        Returns:
+            A dictionary containing:
+            - 'Ws': Weight matrix for input-to-hidden transformations (8, input_dim, hidden_dim).
+                - First 4 matrices are for forward direction.
+                - Last 4 matrices are for backward direction.
+            - 'Us': Weight matrix for hidden-to-hidden transformations (8, hidden_dim, hidden_dim).
+                - First 4 matrices are for forward direction.
+                - Last 4 matrices are for backward direction.
+            - 'Bs': Bias terms (8, hidden_dim).
+                - First 4 biases are for forward direction.
+                - Last 4 biases are for backward direction.
+                - The forget gate bias (index 0 and 4) is initialized to 1.
+        '''
+
+        match self.config[name]['strategy']:
+            case 'None':
+                return {
+                    'Ws': random.normal(self.key, (
+                        8,
+                        self.config[name]['input_dim'],
+                        self.config[name]['hidden_dim'],
+                    )),
+                    'Us': random.normal(self.key, (
+                        8,
+                        self.config[name]['hidden_dim'],
+                        self.config[name]['hidden_dim'],
+                    )),
+                    'Bs': jnp.zeros((
+                        8,
+                        self.config[name]['hidden_dim']
+                    )).at[0].set(1).at[4].set(1),  # Initialize forget gate biases to 1
+                }
+            case 'Kaiming':
+                return {
+                    'Ws': random.normal(self.key, (
+                        8,
+                        self.config[name]['input_dim'],
+                        self.config[name]['hidden_dim'],
+                    )) * jnp.sqrt(2 / (self.config[name]['input_dim'])),  # Kaiming
+                    'Us': random.normal(self.key, (
+                        8,
+                        self.config[name]['hidden_dim'],
+                        self.config[name]['hidden_dim'],
+                    )) * jnp.sqrt(2 / (self.config[name]['input_dim'])),
+                    'Bs': jnp.zeros((
+                        8,
+                        self.config[name]['hidden_dim']
+                    )).at[0].set(1).at[4].set(1),  # Initialize forget gate biases to 1
+                }
+            case 'Xavier':
+                return {
+                    'Ws': random.normal(self.key, (
+                        8,
+                        self.config[name]['input_dim'],
+                        self.config[name]['hidden_dim'],
+                    )) * jnp.sqrt(2 / (self.config[name]['input_dim'] + self.config[name]['hidden_dim'])),  # Xavier
+                    'Us': random.normal(self.key, (
+                        8,
+                        self.config[name]['hidden_dim'],
+                        self.config[name]['hidden_dim'],
+                    )) * jnp.sqrt(2 / (self.config[name]['input_dim'] + self.config[name]['hidden_dim'])),
+                    'Bs': jnp.zeros((
+                        8,
+                        self.config[name]['hidden_dim']
+                    )).at[0].set(1).at[4].set(1),  # Initialize forget gate biases to 1
+                }
+            case _:
+                raise ValueError(f'[x] Do not support strategy: {name["strategy"]} given by {name}.')
+
+    def _bigru(self, name):
+        '''
+        Initializes parameters for a bidirectional GRU layer.
+
+        Config should be:
+        ```
+        name: {
+            'input_dim': int,  # Input dimension
+            'hidden_dim': int,  # Hidden state dimension
+            'strategy': str,  # Initial strategy, including None, Kaiming, Xavier
+        }
+        ```
+
+        Returns:
+            A dictionary containing:
+            - 'Ws': Weight matrix for input-to-hidden transformations (6, input_dim, hidden_dim).
+                - First 3 matrices are for forward direction.
+                - Last 3 matrices are for backward direction.
+            - 'Us': Weight matrix for hidden-to-hidden transformations (6, hidden_dim, hidden_dim).
+                - First 3 matrices are for forward direction.
+                - Last 3 matrices are for backward direction.
+            - 'Bs': Bias terms (6, hidden_dim).
+                - First 3 biases are for forward direction.
+                - Last 3 biases are for backward direction.
+        '''
+
+        match self.config[name]['strategy']:
+            case 'None':
+                return {
+                    'Ws': random.normal(self.key, (
+                        6,
+                        self.config[name]['input_dim'],
+                        self.config[name]['hidden_dim'],
+                    )),
+                    'Us': random.normal(self.key, (
+                        6,
+                        self.config[name]['hidden_dim'],
+                        self.config[name]['hidden_dim'],
+                    )),
+                    'Bs': jnp.zeros((
+                        6,
+                        self.config[name]['hidden_dim']
+                    )),
+                }
+            case 'Kaiming':
+                return {
+                    'Ws': random.normal(self.key, (
+                        6,
+                        self.config[name]['input_dim'],
+                        self.config[name]['hidden_dim'],
+                    )) * jnp.sqrt(2 / (self.config[name]['input_dim'])),  # Kaiming
+                    'Us': random.normal(self.key, (
+                        6,
+                        self.config[name]['hidden_dim'],
+                        self.config[name]['hidden_dim'],
+                    )) * jnp.sqrt(2 / (self.config[name]['input_dim'])),
+                    'Bs': jnp.zeros((
+                        6,
+                        self.config[name]['hidden_dim']
+                    )),
+                }
+            case 'Xavier':
+                return {
+                    'Ws': random.normal(self.key, (
+                        6,
+                        self.config[name]['input_dim'],
+                        self.config[name]['hidden_dim'],
+                    )) * jnp.sqrt(2 / (self.config[name]['input_dim'] + self.config[name]['hidden_dim'])),  # Xavier
+                    'Us': random.normal(self.key, (
+                        6,
+                        self.config[name]['hidden_dim'],
+                        self.config[name]['hidden_dim'],
+                    )) * jnp.sqrt(2 / (self.config[name]['input_dim'] + self.config[name]['hidden_dim'])),
+                    'Bs': jnp.zeros((
+                        6,
+                        self.config[name]['hidden_dim']
+                    )),
+                }
+            case _:
+                raise ValueError(f'[x] Do not support strategy: {name["strategy"]} given by {name}.')
 
     def _basic_rnn(self, name):
         '''

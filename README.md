@@ -69,19 +69,25 @@ Overview of Framework
     - Basic rnn kernel
     - LSTM kernel
     - GRU kernel
-    - BiLSTM kernel <mark>TODO</mark>
-    - BiGRU kernel <mark>TODO</mark>
+    - BiLSTM kernel
+    - BiGRU kernel 
+    - Layer Norm <mark>TODO</mark>
   - FC
     - Dropout
     - Linear
 - Optimizer
-  - Raw GD
-  - Momentum
-  - Nesterov(NAG)
-  - AdaGrad
-  - RMSProp
-  - AdaDelta
-  - Adam[[6](#reference)]
+  - Algorithms
+    - Raw GD
+    - Momentum
+    - Nesterov(NAG)
+    - AdaGrad
+    - RMSProp
+    - AdaDelta
+    - Adam[[6](#reference)]
+  - Machanisms
+    - Lr Decay. <mark>TODO</mark>
+    - Weight Decay. <mark>TODO</mark>
+    - Freeze. <mark>TODO</mark>
 - Utils
   - sigmoid
   - one hot
@@ -91,25 +97,27 @@ Overview of Framework
   - l1_regularization
   - l2_regularization
 
-#### 🗠 Number of Codes
+#### @ Number of Codes
 
 Last update: 2025.03.14.   
 
 ```text
-      68 text files.
-      49 unique files.                              
-      49 files ignored.
+     236 text files.
+     135 unique files.                              
+     138 files ignored.
 
-github.com/AlDanial/cloc v 1.98  T=0.04 s (1365.4 files/s, 303229.6 lines/s)
+github.com/AlDanial/cloc v 1.98  T=0.05 s (2810.5 files/s, 307803.1 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Jupyter Notebook                21              0           3954           2022
-Python                          21           1014           1805           1669
-Text                             6              1              0            295
-Markdown                         1             19              0            103
+Python                          33           1689           3297           3177
+Jupyter Notebook                21              0           3947           1913
+Text                             6              1              0            301
+CSV                             68              0              0            203
+Markdown                         5             40              0            198
+TOML                             2              3              0             16
 -------------------------------------------------------------------------------
-SUM:                            49           1034           5759           4089
+SUM:                           135           1733           7244           5808
 -------------------------------------------------------------------------------
 ```
 
