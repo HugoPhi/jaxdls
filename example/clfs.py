@@ -64,7 +64,7 @@ class lstm(ClfTrait):
             self.optr.update()
 
         self.optr.close()
-        jax.clear_caches() 
+        jax.clear_caches()
 
 
 class gru(ClfTrait):
@@ -110,7 +110,7 @@ class gru(ClfTrait):
             self.optr.update()
 
         self.optr.close()
-        jax.clear_caches() 
+        jax.clear_caches()
 
 
 class bilstm(ClfTrait):
@@ -157,7 +157,7 @@ class bilstm(ClfTrait):
             self.optr.update()
 
         self.optr.close()
-        jax.clear_caches() 
+        jax.clear_caches()
 
 
 class bigru(ClfTrait):
@@ -204,7 +204,7 @@ class bigru(ClfTrait):
             self.optr.update()
 
         self.optr.close()
-        jax.clear_caches() 
+        jax.clear_caches()
 
 
 '''
@@ -276,4 +276,4 @@ class conv1dx3(ClfTrait):
             self.optr.update()
 
         self.optr.close()
-        jax.clear_caches() 
+        jax.clear_caches()
