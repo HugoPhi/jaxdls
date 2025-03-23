@@ -1,6 +1,6 @@
 # 🔥 Classic DeepLearning Models by Jax
 
-> <ins>💡: The Latest Framework test case is under: `./example/`.</ins>  
+> <ins>💡: The Latest Framework test case is under: [`./example/`](./example/README.md).</ins>  
 
 <p align="center">
   <img src="./assets/mlp.svg" alt="MLP on MNIST" width="45%">
