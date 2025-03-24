@@ -2,3 +2,7 @@
 	path = plugins/lrkit
 	url = https://github.com/HugoPhi/lrkit.git
   branch = jax
+[submodule "plugins/minitorch"]
+	path = plugins/minitorch
+	url = https://github.com/HugoPhi/minitorch.git
+  branch = main
