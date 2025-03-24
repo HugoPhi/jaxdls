@@ -37,7 +37,7 @@ On MNIST: (a) acc[96.80%] & loss vs. epochs for mlp; (b) acc[98.24%] & loss vs. 
 
 ## # Plugins
 
-- [Minitorch](), branch: `main`.
+- [Minitorch](https://github.com/HugoPhi/minitorch.git), branch: `main`.
 - [LrKit](https://github.com/HugoPhi/lrkit.git), branch: `jax`.
 
 #### @ Number of Codes
